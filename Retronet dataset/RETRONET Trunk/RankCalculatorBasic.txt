@@ -1,0 +1,137 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using System.Data;
+using org.traceabilitycenter.RetroToolkit.Data;
+using org.traceabilitycenter.RetroToolkit.Basic.Data;
+
+namespace org.traceabilitycenter.RetroToolkit.VectorSpace
+{
+    public class RankCalculatorBasic : ICandidateLinkRankCalculator
+    {
+        public override string ToString()
+        {
+            return getPluginName();
+        }
+
+        #region IRankCalculator Members
+
+        private static double cutoff = 0.00001;
+
+        public void calculateCandidateLinkRanks(IDocumentCollection highDocs, IDocumentCollection lowDocs)
+        {
+            //Make sure the highLevelKeywords are sorted by vocabulary index
+            foreach (Document highReq in highDocs)
+            {
+                highReq.Keywords.SortByVocabulary();
+            }
+            //Make sure the lowLevelKeywords are sorted by vocabulary index
+            foreach (Document lowReq in lowDocs)
+            {
+                lowReq.Keywords.SortByVocabulary();
+            }
+
+            double weight = 0.0;
+            double qWeight = 0.0;
+            double dWeight = 0.0;
+
+            foreach (Document highReq in highDocs)
+            {
+                foreach (Document lowReq in lowDocs)
+                {
+                    ICandidateLink linkRow = highReq.CandidateLinks.FindByLowLevelID(lowReq.ID);
+
+                    if (linkRow != null && linkRow.LinkStatus == "Not A Link")
+                    {
+                        linkRow.Weight = 0.0;
+                        continue;
+                    }
+
+                    weight = 0.0;
+                    qWeight = 0.0;
+                    dWeight = 0.0;
+
+                    int hIndex = 0, lIndex = 0;
+                    while (hIndex < highReq.Keywords.Count && lIndex < lowReq.Keywords.Count)
+                    {
+                        qWeight += highReq.Keywords[hIndex].Weight;
+                        dWeight += lowReq.Keywords[lIndex].Weight;
+                        switch (highReq.Keywords[hIndex].Term.ID.CompareTo(lowReq.Keywords[lIndex].Term.ID)) {
+                            case 0: //equal
+                                //Do not include term if it isn't enabled
+                                if (highReq.Keywords[hIndex].Enabled && lowReq.Keywords[lIndex].Enabled)
+                                {
+                                    weight += (highReq.Keywords[hIndex].Weight * lowReq.Keywords[lIndex].Weight);
+                                }
+                                hIndex++;
+                                break;
+                            case -1: //hIndex < lIndex
+                                hIndex++;
+                                break;
+                            case 1: //hIndex > lIndex
+                                lIndex++;
+                                break;
+                        }
+                    }
+
+                    //weight /= (qWeight * dWeight);
+                    
+                    if (linkRow != null)
+                    {
+                        if (weight <= cutoff && linkRow.LinkStatus == "Default")
+                        {
+                            linkRow.Remove();
+                        }
+                        else linkRow.Weight = weight;
+                    }
+                    else if (weight > cutoff)
+                    {
+                        CandidateLink newRow = new CandidateLink();
+                        newRow.HighLevelDoc = highDocs.FindByID(highReq.ID);
+                        newRow.LowLevelDoc = lowDocs.FindByID(lowReq.ID);
+                        newRow.LinkStatus = "Default";
+                        newRow.Weight = weight;
+                        newRow.Add();
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region IPlugin Members
+
+        public int getPluginID()
+        {
+            return 1;
+        }
+
+        public string getPluginName()
+        {
+            return "Vector Space";
+        }
+
+        #endregion
+    }
+}

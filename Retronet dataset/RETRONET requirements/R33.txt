@@ -1,0 +1,1 @@
+It is necessary to provide a mechanism to exit the RETRO application when the user is finished working with the application. The user shall be able to exit the application.

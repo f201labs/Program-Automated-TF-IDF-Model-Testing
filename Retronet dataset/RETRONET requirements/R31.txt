@@ -1,0 +1,1 @@
+The user shall be able to activate the SAVE function to save the current data and status of the project. When activated RETRO will save all current data and project.

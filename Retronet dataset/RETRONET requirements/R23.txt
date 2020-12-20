@@ -1,0 +1,4 @@
+Similar in functionality to the START NEW PROJECT function, the LOAD RTM function collects project parameters from the user and initializes the project.  A project created via the LOAD RTM function may be in either “trace” or “assess” mode.  Assess mode is usually used when the user is provided a RTM and needs to evaluate its accuracy, completeness, and satisfaction level. The user shall optionally be prompted to provide “Weight Option” from the following list:
+•	TF-IDF (Default)
+•	Okapi
+•	LTU

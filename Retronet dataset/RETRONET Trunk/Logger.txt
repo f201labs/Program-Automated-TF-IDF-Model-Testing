@@ -1,0 +1,42 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.IO;
+
+namespace org.traceabilitycenter.RetroToolkit
+{
+    public class Logger
+    {
+        private string filePath = "";
+
+        // Constructor
+        public Logger()
+        {
+        }
+
+        public void Write(string line)
+        {
+            if (filePath == string.Empty)
+            {
+                string dirPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                string fileName = "RetroActions" + "-" + DateTime.Now.ToString("yy-MM-dd-hh-mm-ss").ToString() + ".csv";
+                filePath = dirPath + @"\\" + fileName;
+
+                try
+                {
+                    if (File.Exists(filePath)) { File.Delete(filePath); }
+                    File.AppendAllText(filePath, "Time,Element,Action" + Environment.NewLine);
+                }
+                catch (System.UnauthorizedAccessException ex)
+                {
+                    dirPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                    filePath = dirPath + @"\\" + fileName;
+                    if (File.Exists(filePath)) { File.Delete(filePath); }
+                    File.AppendAllText(filePath, "Time,Element,Action" + Environment.NewLine);
+                }
+            }
+
+            File.AppendAllText(filePath, DateTime.Now.ToString("HH:mm:ss").ToString() + "," + line + Environment.NewLine);
+        }
+    }
+}

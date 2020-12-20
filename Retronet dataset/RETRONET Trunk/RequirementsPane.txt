@@ -1,0 +1,355 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
+using System.Data;
+using System.Text;
+using System.Windows.Forms;
+using System.Collections;
+using org.traceabilitycenter.RetroToolkit;
+using System.Text.RegularExpressions;
+
+namespace org.traceabilitycenter.Retro.UI
+{
+    /// <summary>
+    /// Provides a basic class for requirements display
+    /// </summary>
+    public partial class RequirementsPane : TableLayoutPanel
+    {
+        /// <summary>
+        /// Title of the requirements
+        /// </summary>
+        public String Title
+        {
+            get
+            {
+                return this.groupReqs.Text;
+            }
+            set
+            {
+                this.groupReqs.Text = value;
+            }
+        }
+
+        /// <summary>
+        /// Project the requirements are associated with
+        /// </summary>
+        public virtual RetroDocument Project
+        {
+            get
+            {
+                return _project;
+            }
+            set
+            {
+                _project = value;
+            }
+        }
+        private RetroDocument _project = null;
+
+        /// <summary>
+        /// A datagrid storing and displaying the requirements
+        /// </summary>
+        public DataGridView Requirements {
+            get {
+                return this.dgReqs;
+            }
+        }
+
+        /// <summary>
+        /// A description control which displays the descriptions of the selected requirements
+        /// </summary>
+        public RichTextBox Descriptions
+        {
+            get
+            {
+                return this.tbReqs;
+            }
+        }
+
+        /// <summary>
+        /// Name of the column used to store the id
+        /// </summary>
+        private String _idColumnName = null;
+        public String IDColumnName
+        {
+            get
+            {
+                return _idColumnName;
+            }
+            set
+            {
+                _idColumnName = value;
+            }
+        }
+
+        /// <summary>
+        /// Name of the column used to store the description
+        /// </summary>
+        private String _descriptionColumnName = null;
+        public String DescriptionColumnName
+        {
+            get
+            {
+                return _descriptionColumnName;
+            }
+            set
+            {
+                _descriptionColumnName = value;
+            }
+        }
+
+        public RequirementsPane()
+        {
+            InitializeComponent();
+            this.dgReqs.AutoGenerateColumns = false;
+        }
+
+        protected override void OnVisibleChanged(EventArgs e)
+        {
+            base.OnVisibleChanged(e);
+            tabFilters.Selected += new TabControlEventHandler(tabFilters_Selected);
+            tabFilters_Selected(tabFilters, new TabControlEventArgs(this.tabFilters.SelectedTab, this.tabFilters.SelectedIndex, TabControlAction.Selected));
+            dgReqs.SelectionChanged += new EventHandler(dgReqs_SelectionChanged);
+            dgReqs_SelectionChanged(dgReqs, new EventArgs());
+            dgReqs.DataBindingComplete += new DataGridViewBindingCompleteEventHandler(dgReqs_DataBindingComplete);
+        }
+
+        private void dgReqs_SelectionChanged(object sender, System.EventArgs e)
+        {
+            tbReqs.Clear();
+
+            DataGridView dv = sender as DataGridView;
+            if (dv == null || dv.SelectedRows.Count <= 0) return;
+
+            List<DataGridViewRow> ar = new List<DataGridViewRow>();
+            foreach(DataGridViewRow r in dv.SelectedRows) { ar.Add(r); }
+            ar.Sort(new dgSorter());
+
+            // wkkong 8/21/10 - Log requirement selections
+            string output = "";
+            if (dv.Columns.Contains("LowLevelID"))
+                output += "   ";
+
+            for (int i = 0; i < ar.Count; i++)
+            {
+                tbReqs.AppendRequirement(
+                    dv.Columns.Contains(IDColumnName) ? ((ar[i]).Cells[IDColumnName].Value.ToString()) : String.Empty,
+                    dv.Columns.Contains(DescriptionColumnName) ? ((ar[i]).Cells[DescriptionColumnName].Value.ToString()) : String.Empty
+                );
+
+                output += dv.Columns.Contains(IDColumnName) ? ((ar[i]).Cells[IDColumnName].Value.ToString()) : String.Empty;
+                output += "+";
+            }
+            output = output.TrimEnd(new char[] { '+', ' ' });
+            output += ",Selected";
+            RetroApplication.ActionLogger.Write(output);
+        }
+
+        private void dgReqs_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            if (dgReqs != sender || sender == null) return;
+            RenumberRows();
+        }
+
+        protected void RenumberRows()
+        {
+            int rowNum = 1;
+            foreach (DataGridViewRow r in dgReqs.Rows)
+            {
+                if (dgReqs.Rows[r.Index].Visible)
+                {
+                    dgReqs.Rows[r.Index].HeaderCell.Value = (rowNum++).ToString();
+                }
+            }
+            dgReqs.AutoResizeRowHeadersWidth(DataGridViewRowHeadersWidthSizeMode.AutoSizeToDisplayedHeaders);
+        }
+        public TabPage getSelectedTab()
+        {
+            return this.tabFilters.SelectedTab;
+        }
+
+        public void SelectTab(TabPage tabPage)
+        {
+            this.tabFilters.SelectedTab = tabPage;
+        }
+
+        public void SelectAllTab()
+        {
+            this.tabFilters.SelectedTab = tabAll;
+        }
+
+        public void SelectRequirement(String elementID)
+        {
+            foreach (DataGridViewRow r in this.Requirements.Rows)
+            {
+                if (r.Cells[0] != null && r.Cells[0].Value != null && r.Cells[0].Value.ToString() == elementID)
+                {
+                    r.Selected = true;
+                    this.Requirements.CurrentCell = r.Cells[0];
+                }
+                else
+                {
+                    r.Selected = false;
+                }
+            }
+        }
+
+        void tabFilters_Selected(object sender, TabControlEventArgs e)
+        {
+            if(this.tabFilters.SelectedTab == null) return;
+
+            // wkkong 8/23/10 - Log tab selections
+            if (this.tabFilters.SelectedTab.Name.Equals(tabAll.Name))
+            {
+                RetroApplication.ActionLogger.Write(IDColumnName + ",All links selected.");
+                RowStyles[1].Height = 30;
+                ApplyFilter(String.Empty);
+                tbReqs.HighlightText = String.Empty;
+                dgReqs.Focus();
+            }
+            if(this.tabFilters.SelectedTab.Name.Equals(tabKeyword.Name))
+            {
+                RetroApplication.ActionLogger.Write(IDColumnName + ",Keyword search selected.");
+                RowStyles[1].Height = 125;
+                tbSearchbox.Focus();
+                btnSearch_Click(btnSearch, new EventArgs());
+            }
+            if (this.tabFilters.SelectedTab.Name.Equals("tabLowLevelRecommendation"))
+            {
+                RetroApplication.ActionLogger.Write(IDColumnName + ",By Recommendation selected.");
+            }
+            else
+            {
+                tbReqs.HighlightText = String.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Applys a row filter to the requirements DataGridView
+        /// </summary>
+        /// <param name="filter"></param>
+        protected void ApplyFilter(String filter)
+        {
+            int descCol = -1;
+            int idCol = -1;
+            foreach (DataGridViewColumn col in dgReqs.Columns)
+            {
+                if (col.Name.Contains("Description"))
+                {
+                    descCol = col.Index;
+                }
+                if (col.Name.Contains("ID"))
+                {
+                    idCol = col.Index;
+                }
+            }
+            if(descCol == -1 || idCol == -1) { return; }
+
+            try
+            {
+                bool visible;
+                String description;
+                String id;
+
+                foreach (DataGridViewRow row in dgReqs.Rows)
+                {
+                    visible = true;
+                    
+                    description = row.Cells[idCol].Value.ToString() + ' ' + row.Cells[descCol].Value.ToString();
+                    
+                    //Perform an all terms search using space and comma as term delimiters
+                    if (cbAdvancedSearch.Checked == false)
+                    {
+                        // wkkong 12/29/09 - add underscore as another delimiter.
+                        foreach (String term in filter.Split(' ', ',', '_'))
+                        {
+                            // wkkong 12/29/09 - force strings to lower case for proper comparison.
+                            if (!description.ToString().ToLower().Contains(term.ToLower()))
+                            {
+                                visible = false;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (filter != null && filter != String.Empty)
+                        {
+                            visible = BooleanExpression.IsMatch(description, filter);
+                        }
+                    }
+
+                    if (!visible && dgReqs.CurrentCell != null && dgReqs.CurrentCell.RowIndex == row.Index) {
+                        dgReqs.CurrentCell = null;
+                    }
+                    row.Visible = visible;
+                }
+
+                dgReqs.Select();
+                tbReqs.HighlightText = (cbAdvancedSearch.Checked) ? filter.ToLower().Replace("(", "").Replace(")","").Replace(" and "," ").Replace(" or "," ").Replace(" not "," ") : filter;
+
+                RenumberRows();
+            }
+            catch (EvaluateException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
+        }
+
+        /// <summary>
+        /// Activates the search button if an enter or return key is pressed in the keyword textbox
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void tbSearchbox_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
+        {
+            if(e.KeyValue == ((int)'\r') || e.KeyValue == ((int)'\n')) {
+                btnSearch.PerformClick();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        /// <summary>
+        /// Performs a keyword search
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void btnSearch_Click(object sender, System.EventArgs e)
+        {
+            // wkkong 8/22/10 - Log keyword searches
+            // wkkong 8/23/10 - Add boolean checkbox state
+            if (this.tbSearchbox.Text.Length > 0)
+            {
+                string keywordsearch = "Keyword search: ";
+                if (cbAdvancedSearch.Checked)
+                    keywordsearch = keywordsearch.Insert(0, "Boolean ");
+
+                RetroApplication.ActionLogger.Write(IDColumnName + "," + keywordsearch + this.tbSearchbox.Text);
+            }
+            ApplyFilter(this.tbSearchbox.Text);
+        }
+    }
+}

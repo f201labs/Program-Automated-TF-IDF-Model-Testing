@@ -1,0 +1,196 @@
+﻿//http://www.codeproject.com/KB/recipes/booleanexpression.aspx
+//BoolExpr is free software: 
+//you can redistribute it and/or modify it under the terms of the GNU General Public License 
+//as published by the Free Software Foundation, 
+//either version 3 of the License, 
+//or(at your option) any later version. 
+//BoolExpr is distributed in the hope that it will be useful, 
+//but WITHOUT ANY WARRANTY; 
+//without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+//See the GNU General Public License for more details. 
+//You should have received a copy of the GNU General Public License along with Foobar.  
+//If not, see <http://www.gnu.org/licenses/>.
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Data;
+using System.Collections;
+
+namespace org.traceabilitycenter.Retro.UI
+{
+    public class BooleanExpression
+    {
+        public static bool IsMatch(string text, string sExpression)
+        {
+            string _postFixExpression = "";
+            _postFixExpression = ConvertToPostFix(sExpression);
+            string[] arrsPostFix = _postFixExpression.Split();
+            Stack<bool> stackResult = new Stack<bool>();
+            bool bVal1;
+            bool bVal2;
+            string sText = text.ToUpper();
+
+            foreach (string sKW in arrsPostFix)
+            {
+                if ((sKW != "and") && (sKW != "or") && (sKW != "not"))
+                {
+                    if (sText.Contains(sKW.ToUpper()))
+                    {
+                        stackResult.Push(true);
+                    }
+                    else
+                    {
+                        stackResult.Push(false);
+                    }
+                }
+                else
+                {
+
+                    if (sKW == "and")
+                    {
+                        bVal1 = stackResult.Pop();
+                        bVal2 = stackResult.Pop();
+
+                        stackResult.Push(bVal1 && bVal2);
+                    }
+                    else if (sKW == "or")
+                    {
+                        bVal1 = stackResult.Pop();
+                        bVal2 = stackResult.Pop();
+
+                        stackResult.Push(bVal1 || bVal2);
+                    }
+                    else if (sKW == "not")
+                    {
+                        bVal1 = stackResult.Pop();
+                        stackResult.Push(!bVal1);
+                    }
+                }
+            }
+
+            if (stackResult.Count == 1)
+            {
+                return stackResult.Pop();
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        static private string ConvertToPostFix(String expr)
+        {
+            Dictionary<string, int> m_dictPrecedence = new Dictionary<string, int>();
+            m_dictPrecedence.Add("or", 1);
+            m_dictPrecedence.Add("and", 2);
+            m_dictPrecedence.Add("not", 3);
+
+            ArrayList m_alKW = new ArrayList();
+
+            string sPostFix = "";
+            Stack<string> stackOps = new Stack<string>();
+            string sStackOperator;
+
+            string[] arrsToken = expr.Split();
+            m_alKW.Clear();
+
+            foreach (string sKW in arrsToken)
+            {
+                string sRealKW = sKW;
+                int iPos = sRealKW.IndexOf('(');
+
+                while (iPos != -1)
+                {
+                    if (iPos > 0)
+                    {
+                        m_alKW.Add(sRealKW.Substring(0, iPos));
+                    }
+                    m_alKW.Add("(");
+                    sRealKW = sRealKW.Substring(iPos + 1);
+                    iPos = sRealKW.IndexOf('(');
+                }
+
+                iPos = sRealKW.IndexOf(')');
+
+                while (iPos != -1)
+                {
+                    if (iPos > 0)
+                    {
+                        m_alKW.Add(sRealKW.Substring(0, iPos));
+                    }
+
+                    m_alKW.Add(")");
+                    sRealKW = sRealKW.Substring(iPos + 1);
+                    iPos = sRealKW.IndexOf(')');
+                }
+
+                if (sRealKW.Length > 0)
+                {
+                    m_alKW.Add(sRealKW);
+                }
+            }
+
+            foreach (string sKW in m_alKW)
+            {
+                if ((sKW != "and") && (sKW != "or") && (sKW != "not") && (sKW != "(") && (sKW != ")"))
+                {
+                    sPostFix = sPostFix + " " + sKW;
+                }
+                else
+                {
+                    if (stackOps.Count == 0 || sKW == "(")
+                    {
+                        stackOps.Push(sKW);
+                    }
+                    else
+                    {
+                        if (sKW == ")")
+                        {
+                            sStackOperator = stackOps.Pop();
+
+                            while (sStackOperator != "(")
+                            {
+                                sPostFix = sPostFix + " " + sStackOperator;
+                                sStackOperator = stackOps.Pop();
+                            }
+                        }
+                        else if (stackOps.Peek() == "(")
+                        {
+                            stackOps.Push(sKW);
+                        }
+                        else
+                        {
+                            while (stackOps.Count != 0)
+                            {
+                                if (stackOps.Peek() == "(")
+                                {
+                                    break;
+                                }
+                                if (m_dictPrecedence[stackOps.Peek()] > m_dictPrecedence[sKW])
+                                {
+                                    sStackOperator = stackOps.Pop();
+                                    sPostFix = sPostFix + " " + sStackOperator;
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+
+                            stackOps.Push(sKW);
+                        }
+                    }
+                }
+            }
+
+            while (stackOps.Count > 0)
+            {
+                sPostFix = sPostFix + " " + stackOps.Pop();
+            }
+
+            return sPostFix.Trim();
+        }
+
+    }
+}

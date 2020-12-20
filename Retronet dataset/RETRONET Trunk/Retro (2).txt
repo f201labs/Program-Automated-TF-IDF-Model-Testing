@@ -1,0 +1,300 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{97088A40-FFE8-403C-8202-0BD9243FC5E6}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>org.traceabilitycenter.Retro</RootNamespace>
+    <AssemblyName>Retro</AssemblyName>
+    <StartupObject>org.traceabilitycenter.Retro.Retro</StartupObject>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
+    <PublishUrl>C:\Users\Jody\Desktop\Retro.Net ClickOnce\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>false</MapFileExtensions>
+    <SupportUrl>http://selab.netlab.uky.edu/</SupportUrl>
+    <ProductName>Retro.Net</ProductName>
+    <PublisherName>UK SELab</PublisherName>
+    <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
+    <ApplicationRevision>2</ApplicationRevision>
+    <ApplicationVersion>3.5.6.2</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <CreateDesktopShortcut>true</CreateDesktopShortcut>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\doc\Retro.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>EE71C021D1CAD6A3191B8CC8E94F7C10679CC93E</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>Retro_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>true</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>false</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetZone>Internet</TargetZone>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="UI\Logger.cs" />
+    <Compile Include="Retro.cs">
+    </Compile>
+    <Compile Include="Properties\Settings.cs" />
+    <Compile Include="UI\BooleanExpression.cs" />
+    <Compile Include="UI\KeywordDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\KeywordDialog.Designer.cs">
+      <DependentUpon>KeywordDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ProjectSettingsDialog.Designer.cs">
+      <DependentUpon>ProjectSettingsDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ReportDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\ReportDialog.Designer.cs">
+      <DependentUpon>ReportDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\RequirementRichTextBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\RequirementsPane.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\RequirementsPane.Designer.cs">
+      <DependentUpon>RequirementsPane.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\RequirementsPaneHigh.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\RequirementsPaneHigh.Designer.cs">
+      <DependentUpon>RequirementsPaneHigh.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\RequirementsPaneLow.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\RequirementsPaneLow.Designer.cs">
+      <DependentUpon>RequirementsPaneLow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\RetroPrintDocument.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\AboutBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\AboutBox.Designer.cs">
+      <DependentUpon>AboutBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\BaseDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\RetroApplication.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\RetroApplication.Designer.cs">
+      <DependentUpon>RetroApplication.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\RetroProjectForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\RetroProjectForm.Designer.cs">
+      <DependentUpon>RetroProjectForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="UI\AboutBox.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>AboutBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\KeywordDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>KeywordDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ProjectSettingsDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ProjectSettingsDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ReportDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ReportDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\RequirementsPane.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>RequirementsPane.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\RetroApplication.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>RetroApplication.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\RetroProjectForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>RetroProjectForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\FilterDataGridView.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FilterDataGridView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ShowTextDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ShowTextDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="app.config" />
+    <None Include="Properties\app.manifest" />
+    <None Include="Properties\Settings.settings">
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Content Include="stopword_fox.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Retro.chm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="UI\ProjectSettingsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FilterDataGridView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\FilterDataGridView.Designer.cs">
+      <DependentUpon>FilterDataGridView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ShowTextDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\ShowTextDialog.Designer.cs">
+      <DependentUpon>ShowTextDialog.cs</DependentUpon>
+    </Compile>
+    <None Include="Retro_TemporaryKey.pfx" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RetroToolkit.Basic.ResultFilters\RetroToolkit.Basic.ResultFilters.csproj">
+      <Project>{A8D77EC7-0E99-45A5-B3C5-52F52EEFE08B}</Project>
+      <Name>RetroToolkit.Basic.ResultFilters</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RetroToolkit.Basic.VocabularyFilters\RetroToolkit.Basic.VocabularyFilters.csproj">
+      <Project>{2477478A-0614-4F9D-A714-5363EA987EAE}</Project>
+      <Name>RetroToolkit.Basic.VocabularyFilters</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RetroToolkit.Basic\RetroToolkit.Basic.csproj">
+      <Project>{2CB886CD-C217-4706-8F9A-F6EA590F4957}</Project>
+      <Name>RetroToolkit.Basic</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RetroToolkit.VectorSpace\RetroToolkit.VectorSpace.csproj">
+      <Project>{5FE5F739-4C2B-4B99-AFD4-1FD64CBCC08E}</Project>
+      <Name>RetroToolkit.VectorSpace</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RetroToolkit\RetroToolkit.csproj">
+      <Project>{291D9F0F-CF88-42B5-BA47-6BB7D973D6AE}</Project>
+      <Name>RetroToolkit</Name>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.4.5">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 4.5</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

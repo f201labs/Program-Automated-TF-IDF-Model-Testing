@@ -1,0 +1,100 @@
+/*
+    Copyright © 2006, Jody Larsen
+    All rights reserved.
+    http://www.dreamfrog.com/
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+  THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+  INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+  OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Data;
+
+using org.traceabilitycenter.RetroToolkit.Data;
+
+namespace org.traceabilitycenter.RetroToolkit.Basic
+{
+    /// <summary>
+    /// Implements a filtering method that removes all candidate links for a given document
+    /// that have a status of default except the N elements with the highest similarity/weight.
+    /// </summary>
+    public class ResultFilterRandomNLocal : IResultFilter
+    {
+        #region IResultFilter Members
+
+        public int RandomN = int.MaxValue;
+
+        public ResultFilterRandomNLocal() { }
+        public ResultFilterRandomNLocal(int randomN) { RandomN = randomN; }
+
+        public void applyResultFilter(DocumentCollection highDocs, DocumentCollection LowDocs)
+        {
+            int cutoffNum = (RandomN / highDocs.Count)+1;
+            int defaultLinkGlobalCount = -228;
+
+            foreach (Document highReq in highDocs)
+            {
+                if (highReq.CandidateLinks.Count <= 0) continue;
+
+                Random randomClass = new Random();
+                foreach (CandidateLink link in highReq.CandidateLinks)
+                {
+                    link.Weight = randomClass.NextDouble();
+                }
+
+                highReq.CandidateLinks.SortByWeightDesc();
+
+                int defaultLinkCount = 0;
+                int cutoffIndex = highReq.CandidateLinks.Count;
+                for (int i = 0; i < highReq.CandidateLinks.Count; i++)
+                {
+                    if (highReq.CandidateLinks[i].LinkStatus != "Default") continue;
+
+                    defaultLinkGlobalCount++;
+                    if (defaultLinkCount++ >= cutoffNum || defaultLinkGlobalCount >= RandomN)
+                    {
+                        cutoffIndex = i;
+                        break;
+                    }
+                }
+
+                for (int j = highReq.CandidateLinks.Count - 1; j >= cutoffIndex; j--)
+                {
+                    if (highReq.CandidateLinks[j].LinkStatus == "Default")
+                    {
+                        highReq.CandidateLinks[j].Remove();
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region IPlugin Members
+
+        public int getPluginID()
+        {
+            return 5;
+        }
+
+        public string getPluginName()
+        {
+            return "Random N Local (High) Filter (N = " + RandomN + ")";
+        }
+
+        #endregion
+    }
+}
+

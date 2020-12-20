@@ -1,0 +1,88 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using org.traceabilitycenter.RetroToolkit.Data;
+using org.traceabilitycenter.RetroToolkit.Basic.Data;
+
+namespace org.traceabilitycenter.RetroToolkit.Basic.VocabularyFilters
+{
+    public class VocabularyFilterRemoveUltraRareTermsFreq : IVocabularyFilter
+    {
+        #region IVocabularyFilter Members
+
+        public VocabularyFilterRemoveUltraRareTermsFreq() { }
+        public VocabularyFilterRemoveUltraRareTermsFreq(double cutoff)
+        {
+            _cutoff = cutoff;
+        }
+
+        private double _cutoff = 0.60;
+        public double Cutoff
+        {
+            get { return _cutoff; }
+            set { _cutoff = value; }
+        }
+
+
+        public void applyVocabularyFilter(RetroDocument doc)
+        {
+            List<Term> terms = new List<Term>();
+            foreach (Term t in doc.Vocabulary.Values) { terms.Add(t); }
+            terms.Sort(new Comparison<Term>(compareTerms));
+            int maxCutoff = (int)Math.Floor((_cutoff * (double)terms.Count));
+            for (int i = 0; i < maxCutoff; i++)
+            {
+                foreach (Document highReq in doc.HighLevelRequirements)
+                {
+                    highReq.Keywords.RemoveTerm(terms[i]);
+                }
+                foreach (Document lowReq in doc.LowLevelRequirements)
+                {
+                    lowReq.Keywords.RemoveTerm(terms[i]);
+                }
+                doc.Vocabulary.Remove(terms[i].Text);
+            }
+        }
+
+        private int compareTerms(Term a, Term b)
+        {
+            return a.Frequency.CompareTo(b.Frequency);
+        }
+
+        #endregion
+
+        #region IPlugin Members
+
+        public int getPluginID()
+        {
+            return 1;
+        }
+
+        public string getPluginName()
+        {
+            return "Remove Rare Terms (cutoff = "+Cutoff+")";
+        }
+
+        #endregion
+    }
+}

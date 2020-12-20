@@ -1,0 +1,86 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Data;
+using org.traceabilitycenter.RetroToolkit.Data;
+using org.traceabilitycenter.RetroToolkit.Basic.Data;
+
+namespace org.traceabilitycenter.RetroToolkit.Basic.ResultFilters
+{
+    public class ResultFilterTopPercentileGlobalRankHigh : IResultFilter
+    {
+        #region IResultFilter Members
+
+        public double Percentile = 0.75;
+
+        public ResultFilterTopPercentileGlobalRankHigh() { }
+        public ResultFilterTopPercentileGlobalRankHigh(double percentile)
+        {
+            Percentile = percentile;
+        }
+
+        public void applyResultFilter(IDocumentCollection highDocs, IDocumentCollection LowDocs)
+        {
+            CandidateLinkCollection allCandidateLinks = new CandidateLinkCollection();
+            foreach (Document d in highDocs)
+            {
+                foreach (CandidateLink link in d.CandidateLinks)
+                {
+                    if (link.LinkStatus == "Default")
+                    {
+                        allCandidateLinks.Add(link);
+                    }
+                }
+            }
+            allCandidateLinks.SortByWeight(true);
+            if (allCandidateLinks.Count <= 0) return;
+
+            int cutoffIndex = Math.Max(0, Math.Min(allCandidateLinks.Count -1 , (int)((double)allCandidateLinks.Count * Percentile)));
+
+            for (int i = allCandidateLinks.Count - 1; i >= cutoffIndex; i--)
+            {
+                ICandidateLink linkRow = allCandidateLinks[i];
+                if (linkRow.LinkStatus == "Default")
+                {
+                    linkRow.Remove();
+                }
+            }
+        }
+
+        #endregion
+
+        #region IPlugin Members
+
+        public int getPluginID()
+        {
+            return 1;
+        }
+
+        public string getPluginName()
+        {
+            return "Top Percentile Global Filter (Percentile = "+Percentile+")";
+        }
+
+        #endregion
+    }
+}

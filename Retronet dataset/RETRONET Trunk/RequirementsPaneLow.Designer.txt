@@ -1,0 +1,184 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+namespace org.traceabilitycenter.Retro.UI
+{
+    partial class RequirementsPaneLow
+    {
+        /// <summary> 
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary> 
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Component Designer generated code
+
+        /// <summary> 
+        /// Required method for Designer support - do not modify 
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            components = new System.ComponentModel.Container();
+
+            this.colLowLevelID = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colWeight = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colLowLevelStatus = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.colDescription = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colExternalStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colKeywords = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.Requirements.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(Requirements_CellFormatting);
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.tabRecommendation = new System.Windows.Forms.TabPage();
+            this.filterDataGrid1 = new org.traceabilitycenter.Retro.UI.FilterDataGridView();
+            //
+            // Suspend layout
+            //
+            this.tabRecommendation.SuspendLayout();
+            this.groupBox3.SuspendLayout();
+            this.SuspendLayout();
+            //
+            // Add the columns the DataViewGrid
+            //
+            Requirements.Columns.Add(this.colLowLevelID);
+            Requirements.Columns.Add(this.colWeight);
+            Requirements.Columns.Add(this.colExternalStatus);
+            Requirements.Columns.Add(this.colLowLevelStatus);
+            Requirements.Columns.Add(this.colDescription);
+            Requirements.Columns.Add(this.colKeywords);
+            // 
+            // LowLevelID
+            // 
+            this.colLowLevelID.Name = "LowLevelID";
+            this.colLowLevelID.DataPropertyName = "ID";
+            this.colLowLevelID.HeaderText = "ID";
+            this.colLowLevelID.ReadOnly = true;
+            // 
+            // LowLevelStatus
+            //
+            this.colLowLevelStatus.DataPropertyName = "LinkStatus";
+            this.colLowLevelStatus.HeaderText = "Status";
+
+            this.colLowLevelStatus.Name = "LowLevelStatus";
+            this.colLowLevelStatus.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.colLowLevelStatus.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            // 
+            // ExternalStatus
+            // 
+            this.colExternalStatus.DataPropertyName = "ExternalStatus";
+            this.colExternalStatus.HeaderText = "ExternalStatus";
+            this.colExternalStatus.Name = "ExternalStatus";
+            this.colExternalStatus.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.colExternalStatus.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            // 
+            // Weight
+            // 
+            this.colWeight.Name = "Weight";
+            this.colWeight.DataPropertyName = "Weight";
+            this.colWeight.HeaderText = "Weight";
+            this.colWeight.ReadOnly = true;
+            this.colWeight.DefaultCellStyle.Format = "P";
+            // 
+            // Description
+            // 
+            this.colDescription.Name = "Description";
+            this.colDescription.DataPropertyName = "Description";
+            this.colDescription.HeaderText = "Description";
+            this.colDescription.ReadOnly = true;
+            this.colDescription.Visible = false;
+            // 
+            // colKeywords
+            // 
+            this.colKeywords.HeaderText = "Keywords";
+            this.colKeywords.Name = "Keywords";
+            this.colKeywords.UseColumnTextForButtonValue = true;
+            this.colKeywords.Text = "View";
+            this.colKeywords.DefaultCellStyle.BackColor = System.Drawing.Color.LightGray;
+            this.colKeywords.Width = 35;
+
+            this.Requirements.EditingControlShowing += new System.Windows.Forms.DataGridViewEditingControlShowingEventHandler(RequirementsLow_EditingControlShowing);
+            this.Requirements.CellMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(Requirements_CellMouseClick);
+            // 
+            // tabRecommendation
+            // 
+            this.tabRecommendation.Controls.Add(this.groupBox3);
+            this.tabRecommendation.Location = new System.Drawing.Point(4, 4);
+            this.tabRecommendation.Name = "tabLowLevelRecommendation";
+            this.tabRecommendation.Padding = new System.Windows.Forms.Padding(3);
+            this.tabRecommendation.Size = new System.Drawing.Size(461, 93);
+            this.tabRecommendation.TabIndex = 2;
+            this.tabRecommendation.Text = "By Recommendation";
+            this.tabRecommendation.UseVisualStyleBackColor = true;
+            // 
+            // groupBox3
+            // 
+            this.groupBox3.Controls.Add(this.filterDataGrid1);
+            this.groupBox3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBox3.Location = new System.Drawing.Point(3, 3);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(455, 87);
+            this.groupBox3.TabIndex = 4;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Filter Low Level Requirements";
+            // 
+            // filterDataGrid1
+            // 
+            this.filterDataGrid1.FilterColumnName = "Weight";
+            this.filterDataGrid1.Location = new System.Drawing.Point(3, 12);
+            this.filterDataGrid1.Margin = new System.Windows.Forms.Padding(1);
+            this.filterDataGrid1.Name = "filterDataGrid1";
+            this.filterDataGrid1.Size = new System.Drawing.Size(200, 62);
+            this.filterDataGrid1.TabIndex = 8;
+            this.filterDataGrid1.TargetDataGrid = null;
+            this.tabFilters.Controls.Add(this.tabRecommendation);
+            tabFilters.Selected += new System.Windows.Forms.TabControlEventHandler(tabFilters_Selected);
+            //
+            // Resume layout
+            //
+            this.tabRecommendation.ResumeLayout(false);
+            this.groupBox3.ResumeLayout(false);
+            this.ResumeLayout(false);
+        }
+
+        private FilterDataGridView filterDataGrid1;
+        private System.Windows.Forms.TabPage tabRecommendation;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colLowLevelID;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colWeight;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colExternalStatus;
+        private System.Windows.Forms.DataGridViewComboBoxColumn colLowLevelStatus;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colDescription;
+        private System.Windows.Forms.DataGridViewButtonColumn colKeywords;
+
+        #endregion
+    }
+}

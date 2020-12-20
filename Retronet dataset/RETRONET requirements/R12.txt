@@ -1,0 +1,1 @@
+The START NEW PROJECT function shall allow the user to create a new project. The user shall be able to create the project using the above input.  The project shall be placed in “Trace” mode.

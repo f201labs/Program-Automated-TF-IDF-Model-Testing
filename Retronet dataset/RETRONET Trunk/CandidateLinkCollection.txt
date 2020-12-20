@@ -1,0 +1,208 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using org.traceabilitycenter.RetroToolkit.Data;
+
+namespace org.traceabilitycenter.RetroToolkit.Basic.Data
+{
+    public class CandidateLinkCollection : List<ICandidateLink>, ICandidateLinkCollection, System.ComponentModel.IBindingList
+    {
+        public ICandidateLinkCollection FindByStatus(String LinkStatus, bool SortByWeightDesc)
+        {
+            CandidateLinkCollection subSet = new CandidateLinkCollection();
+            foreach (CandidateLink link in this)
+            {
+                if (LinkStatus == null || LinkStatus == String.Empty || LinkStatus == link.LinkStatus)
+                {
+                    subSet.Add(link);
+                }
+            }
+            if (SortByWeightDesc) subSet.SortByWeight(true);
+            return subSet;
+        }
+
+        private static CandidateLinkWeightDescComparison WeightSorter = new CandidateLinkWeightDescComparison();
+        private static CandidateLinkRankAscComparison RankSorter = new CandidateLinkRankAscComparison();
+        public void SortByWeight(bool decendingOrder)
+        {
+            if (decendingOrder)
+            {
+                Sort(WeightSorter);
+            }
+            else
+            {
+                Sort(RankSorter);
+            }
+        }
+
+        public ICandidateLink FindByLowLevelID(String lowLevelID)
+        {
+            if (Count <= 0) return null;
+            foreach (CandidateLink link in this)
+            {
+                if (link.LowLevelDoc.ID == lowLevelID)
+                {
+                    return link;
+                }
+            }
+            return null;
+        }
+
+        private static CandidateLinkIDComparison linkIDComparer = new CandidateLinkIDComparison();
+        public ICandidateLink FindByHighLevelDocLowLevelDoc(IDocument highDoc, IDocument lowDoc)
+        {
+            if (Count == 0) return null;
+
+            this.Sort(linkIDComparer);
+
+            CandidateLink testLink = new CandidateLink();
+            testLink.HighLevelDoc = highDoc;
+            testLink.LowLevelDoc = lowDoc;
+
+            int j = this.BinarySearch(0, Count, testLink, linkIDComparer);
+
+            if (j < 0) return null;
+            return this[j];
+        }
+
+        #region IBindingList Members
+
+        public void AddIndex(System.ComponentModel.PropertyDescriptor property)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
+
+        public object AddNew()
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
+
+        public bool AllowEdit
+        {
+            get { return true; }
+        }
+
+        public bool AllowNew
+        {
+            get { return false; }
+        }
+
+        public bool AllowRemove
+        {
+            get { return false; }
+        }
+
+        public void ApplySort(System.ComponentModel.PropertyDescriptor property, System.ComponentModel.ListSortDirection direction)
+        {
+            _sortProperty = property;
+            _sortDirection = direction;
+
+            // Apply and set the sort, if items to sort
+            winforms01082005_CustomDataBinding2.PropertyComparer<ICandidateLink> pc = new winforms01082005_CustomDataBinding2.PropertyComparer<ICandidateLink>(property, direction);
+            this.Sort(pc);
+            _isSorted = true;
+
+            // Let bound controls know they should refresh their views
+            //this.OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
+
+        }
+
+        private bool _isSorted = false;
+        public bool IsSorted
+        {
+            get { return _isSorted; }
+        }
+
+        private System.ComponentModel.ListSortDirection _sortDirection;
+        public System.ComponentModel.ListSortDirection SortDirection
+        {
+            get { return _sortDirection; }
+        }
+
+        public void RemoveSort()
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
+
+        public int Find(System.ComponentModel.PropertyDescriptor property, object key)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
+
+        public event System.ComponentModel.ListChangedEventHandler ListChanged;
+
+        public void RemoveIndex(System.ComponentModel.PropertyDescriptor property)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
+
+        System.ComponentModel.PropertyDescriptor _sortProperty = null;
+        public System.ComponentModel.PropertyDescriptor SortProperty
+        {
+            get { return _sortProperty; }
+        }
+
+        public bool SupportsChangeNotification
+        {
+            get { return true; }
+        }
+
+        public bool SupportsSearching
+        {
+            get { return false; }
+        }
+
+        public bool SupportsSorting
+        {
+            get { return true; }
+        }
+
+        #endregion
+    }
+
+    class CandidateLinkRankAscComparison : Comparer<ICandidateLink>
+    {
+        public override int Compare(ICandidateLink x, ICandidateLink y)
+        {
+            return x.Rank.CompareTo(y.Rank);
+        }
+    }
+
+    class CandidateLinkWeightDescComparison : Comparer<ICandidateLink>
+    {
+        public override int Compare(ICandidateLink x, ICandidateLink y)
+        {
+            return y.Weight.CompareTo(x.Weight);
+        }
+    }
+
+    class CandidateLinkIDComparison : Comparer<ICandidateLink>
+    {
+        public override int Compare(ICandidateLink x, ICandidateLink y)
+        {
+            int c1 = x.HighLevelDoc.ID.CompareTo(y.HighLevelDoc.ID);
+            if(c1 != 0) return c1;
+            return x.LowLevelDoc.ID.CompareTo(y.LowLevelDoc.ID);
+        }
+    }
+}

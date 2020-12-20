@@ -1,0 +1,98 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using System.IO;
+using System.Reflection;
+
+namespace org.traceabilitycenter.RetroToolkit.Basic
+{
+    public class PluginList<T> : List<T>
+    {
+
+        private static string pluginDir = System.AppDomain.CurrentDomain.BaseDirectory;
+
+        public T FindID(int id)
+        {
+            foreach (IPlugin plugin in this)
+            {
+                if (plugin.getPluginID() == id)
+                {
+                    return (T)plugin;
+                }
+            }
+            return default(T);
+        }
+
+        public static PluginList<T> GetPlugins()
+        {
+            PluginList<T> retVal = new PluginList<T>();
+
+            foreach (String f in Directory.GetFiles(pluginDir, "*.dll"))
+            {
+                try
+                {
+                    Assembly a = Assembly.LoadFrom(f);
+                    foreach (Type t in a.GetTypes())
+                    {
+                        if (null != t.GetInterface(typeof(T).FullName))
+                        {
+                            retVal.Add((T)Activator.CreateInstance(t));
+                        }
+                    }
+                }
+                catch (BadImageFormatException)
+                {
+                    //skip bad assemblies.
+                }
+            }
+            return retVal;
+        }
+
+        public static PluginList<IPlugin> GetPlugins(Type pluginType)
+        {
+            PluginList<IPlugin> retVal = new PluginList<IPlugin>();
+
+            foreach (String f in Directory.GetFiles(pluginDir, "*.dll"))
+            {
+                try
+                {
+                    Assembly a = Assembly.LoadFrom(f);
+                    foreach (Type t in a.GetTypes())
+                    {
+                        if (null != t.GetInterface(pluginType.FullName))
+                        {
+                            retVal.Add((IPlugin)Activator.CreateInstance(t));
+                        }
+                    }
+                }
+                catch (BadImageFormatException)
+                {
+                    //skip bad assemblies.
+                }
+            }
+            return retVal;
+        }
+
+    }
+}

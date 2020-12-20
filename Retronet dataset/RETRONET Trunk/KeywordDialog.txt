@@ -1,0 +1,169 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+using org.traceabilitycenter.RetroToolkit;
+using org.traceabilitycenter.RetroToolkit.Data;
+
+namespace org.traceabilitycenter.Retro.UI
+{
+    public partial class KeywordDialog : CustomDialog.BaseDialog
+    {
+        IDocumentTermCollection _documentModel;
+        DataTable _docTerms;
+        DataRowChangeEventHandler docTermsChangingEventHandler = null;
+        public IDocumentTermCollection DocumentModel
+        {
+            get {
+                return _documentModel;
+            }
+            set {
+                _documentModel = value;
+                if(value == null) return;
+
+                _docTerms.Rows.Clear();
+                _docTerms.RowChanging -= docTermsChangingEventHandler;
+                foreach (IDocumentTerm dterm in DocumentModel)
+                {
+                    DataRow dr = _docTerms.NewRow();
+                    dr["Include"] = dterm.Enabled;
+                    dr["Keyword"] = dterm.Term.Text;
+                    dr["Frequency"] = dterm.Frequency;
+                    dr["Weight"] = dterm.Weight;
+                    _docTerms.Rows.Add(dr);
+                }
+                _docTerms.RowChanging += docTermsChangingEventHandler;
+            }
+        }
+
+        void dgKeywords_DefaultValuesNeeded(object sender, DataGridViewRowEventArgs e)
+        {
+            e.Row.Cells["Include"].Value = true;
+            e.Row.Cells["Frequency"].Value = 1;
+            e.Row.Cells["Weight"].Value = 1;
+        }
+
+        void dgKeywords_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        {
+            int colIndex = dgKeywords.Columns["Keyword"].Index;
+            if (e.ColumnIndex != colIndex) return;
+            
+            for(int i = 0; i < dgKeywords.Rows.Count; i++) {
+                if (i == e.RowIndex) continue;
+                if(e.FormattedValue.Equals(dgKeywords.Rows[i].Cells[colIndex].Value)) {
+                    String errorMessage = @"Can't add """ + e.FormattedValue + @""" as it is already in the keyword list.";
+                    MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    dgKeywords.Rows[e.RowIndex].ErrorText = errorMessage;
+                    e.Cancel = true;
+                    dgKeywords.CancelEdit();
+                    return;
+                }
+            }
+            dgKeywords.Rows[e.RowIndex].ErrorText = String.Empty;
+        }
+
+        void _docTerms_RowChanging(object sender, DataRowChangeEventArgs e)
+        {
+            String stemmedWord = Project.Stemmer.stemTerm(e.Row["Keyword"].ToString().Trim().ToLower());
+
+            //if the keyword value was deleted, cancel the edit and return
+            if(stemmedWord == null || stemmedWord.Length <= 0) {
+                //dgKeywords.CancelEdit();
+                return;
+            }
+
+            if (e.Action == DataRowAction.Add && _documentModel.FindByTerm(stemmedWord) == null)
+            {
+                ITerm term = null;
+                if (Project.Vocabulary.ContainsKey(stemmedWord))
+                {
+                    term = Project.Vocabulary[stemmedWord];
+                }
+                else
+                {
+                    term = new RetroToolkit.Basic.Data.Term();
+                    term.Text = stemmedWord;
+                    term.Frequency = 1;
+                    term.DocNumber = 1;
+                    Project.Vocabulary.Add(stemmedWord, term);
+                }
+                IDocumentTerm dterm = new RetroToolkit.Basic.Data.DocumentTerm();
+                dterm.Term = term;
+                dterm.Frequency = 1;
+                dterm.Weight = 1;
+                dterm.Enabled = true;
+                _documentModel.Add(dterm);
+            }
+
+            if (_documentModel.FindByTerm(stemmedWord) == null) { stemmedWord = e.Row["Keyword"].ToString(); }
+            else
+            {
+                _documentModel.FindByTerm(stemmedWord).Enabled = (bool)e.Row["Include"];
+            }
+        }
+
+        /// <summary>
+        /// Project the requirements are associated with
+        /// </summary>
+        public virtual RetroDocument Project
+        {
+            get
+            {
+                return _project;
+            }
+            set
+            {
+                _project = value;
+            }
+        }
+        private RetroDocument _project = null;
+       
+        public KeywordDialog()
+        {
+            InitializeComponent();
+            _docTerms = new DataTable();
+            _docTerms.Columns.Add("Include", typeof(bool));
+            _docTerms.Columns.Add("Keyword", typeof(String));
+            _docTerms.Columns.Add("Frequency", typeof(int)).ReadOnly = true;
+            _docTerms.Columns.Add("Weight", typeof(float)).ReadOnly = true;
+            _docTerms.TableName = "docTerms";
+            BindingSource docTermsBs = new BindingSource();
+            docTermsBs.DataSource = _docTerms;
+            this.dgKeywords.DataSource = docTermsBs;
+            this.dgKeywords.DefaultValuesNeeded += new DataGridViewRowEventHandler(dgKeywords_DefaultValuesNeeded);
+            this.dgKeywords.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgKeywords.CellValidating +=new DataGridViewCellValidatingEventHandler(dgKeywords_CellValidating);
+            this.docTermsChangingEventHandler = new DataRowChangeEventHandler(_docTerms_RowChanging);
+        }
+
+        protected override bool OnOk()
+        {
+            this.dgKeywords.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            return base.OnOk();
+        }
+    }
+}

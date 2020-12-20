@@ -1,0 +1,36 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.IO;
+using System.Reflection;
+
+namespace org.traceabilitycenter.RetroToolkit
+{
+    public class Plugin<T>
+    {
+        public static List<T> GetPlugins(string dir)
+        {
+            List<T> retVal = new List<T>();
+
+            foreach (String f in Directory.GetFiles(dir, "*.dll"))
+            {
+                try
+                {
+                    Assembly a = Assembly.LoadFrom(f);
+                    foreach (Type t in a.GetTypes())
+                    {
+                        if (null != t.GetInterface(typeof(T).FullName))
+                        {
+                            retVal.Add((T)Activator.CreateInstance(t));
+                        }
+                    }
+                }
+                catch (BadImageFormatException)
+                {
+                    //skip bad assemblies.
+                }
+            }
+            return retVal;
+        }
+    }
+}

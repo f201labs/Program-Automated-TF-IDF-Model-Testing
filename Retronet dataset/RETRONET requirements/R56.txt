@@ -1,0 +1,1 @@
+One of the purposes of RETRO is to aid the user in linking low-level requirements with high-level requirements.  TRACING functionality is the component of RETRO that automatically generates a list of candidate links of high to low-level requirements. RETRO shall provide a mechanism for the user to generate a trace on all requirements.

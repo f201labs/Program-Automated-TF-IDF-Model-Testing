@@ -1,0 +1,402 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Windows.Forms;
+
+namespace org.traceabilitycenter.Retro.UI
+{
+    partial class ProjectSettingsDialog
+    {
+        /// <summary> 
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary> 
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+        
+        #region Windows Form Designer generated code
+
+        /// <summary> 
+        /// Required method for Designer support - do not modify 
+        /// the contents of this method with the code editor.
+        /// </summary>
+		private void InitializeComponent() {
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.lblUserID = new System.Windows.Forms.Label();
+            this.ddIRMethod = new System.Windows.Forms.ComboBox();
+            this.ddVocabularyBase = new System.Windows.Forms.ComboBox();
+            this.ddWeightOption = new System.Windows.Forms.ComboBox();
+            this.txtThesaurus = new System.Windows.Forms.TextBox();
+            this.txtStopWord = new System.Windows.Forms.TextBox();
+            this.lblIRMethod = new System.Windows.Forms.Label();
+            this.lblVocabularyBase = new System.Windows.Forms.Label();
+            this.lblWeightOption = new System.Windows.Forms.Label();
+            this.lblThesaurusFile = new System.Windows.Forms.Label();
+            this.lblStopWordFile = new System.Windows.Forms.Label();
+            this.ddFeedbackMethod = new System.Windows.Forms.ComboBox();
+            this.lblFeedbackMethod = new System.Windows.Forms.Label();
+            this.ddMode = new System.Windows.Forms.ComboBox();
+            this.lblProjectMode = new System.Windows.Forms.Label();
+            this.btnBrowseThesaurus = new System.Windows.Forms.Button();
+            this.btnBrowseStopWord = new System.Windows.Forms.Button();
+            this.lblHighDocPath = new System.Windows.Forms.Label();
+            this.lblLowDocPath = new System.Windows.Forms.Label();
+            this.tbHighLevel = new System.Windows.Forms.TextBox();
+            this.tbLowLevel = new System.Windows.Forms.TextBox();
+            this.btnBrowseHighLevel = new System.Windows.Forms.Button();
+            this.btnBrowseLowLevel = new System.Windows.Forms.Button();
+            this.textBoxUserID = new System.Windows.Forms.TextBox();
+            this.tableLayoutPanel1.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // cbCancel
+            // 
+            this.cbCancel.Location = new System.Drawing.Point(374, 312);
+            this.cbCancel.TabIndex = 15;
+            // 
+            // cbOk
+            // 
+            this.cbOk.Location = new System.Drawing.Point(278, 312);
+            this.cbOk.TabIndex = 14;
+            this.cbOk.Text = "OK";
+            // 
+            // Line1
+            // 
+            this.Line1.Location = new System.Drawing.Point(6, 304);
+            this.Line1.Size = new System.Drawing.Size(462, 6);
+            // 
+            // tableLayoutPanel1
+            // 
+            this.tableLayoutPanel1.ColumnCount = 3;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 43.96285F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 56.03715F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 147F));
+            this.tableLayoutPanel1.Controls.Add(this.lblUserID, 0, 10);
+            this.tableLayoutPanel1.Controls.Add(this.ddIRMethod, 1, 3);
+            this.tableLayoutPanel1.Controls.Add(this.ddVocabularyBase, 1, 4);
+            this.tableLayoutPanel1.Controls.Add(this.ddWeightOption, 1, 5);
+            this.tableLayoutPanel1.Controls.Add(this.txtThesaurus, 1, 6);
+            this.tableLayoutPanel1.Controls.Add(this.txtStopWord, 1, 7);
+            this.tableLayoutPanel1.Controls.Add(this.lblIRMethod, 0, 3);
+            this.tableLayoutPanel1.Controls.Add(this.lblVocabularyBase, 0, 4);
+            this.tableLayoutPanel1.Controls.Add(this.lblWeightOption, 0, 5);
+            this.tableLayoutPanel1.Controls.Add(this.lblThesaurusFile, 0, 6);
+            this.tableLayoutPanel1.Controls.Add(this.lblStopWordFile, 0, 7);
+            this.tableLayoutPanel1.Controls.Add(this.ddFeedbackMethod, 1, 8);
+            this.tableLayoutPanel1.Controls.Add(this.lblFeedbackMethod, 0, 8);
+            this.tableLayoutPanel1.Controls.Add(this.ddMode, 1, 9);
+            this.tableLayoutPanel1.Controls.Add(this.lblProjectMode, 0, 9);
+            this.tableLayoutPanel1.Controls.Add(this.btnBrowseThesaurus, 2, 6);
+            this.tableLayoutPanel1.Controls.Add(this.btnBrowseStopWord, 2, 7);
+            this.tableLayoutPanel1.Controls.Add(this.lblHighDocPath, 0, 1);
+            this.tableLayoutPanel1.Controls.Add(this.lblLowDocPath, 0, 2);
+            this.tableLayoutPanel1.Controls.Add(this.tbHighLevel, 1, 1);
+            this.tableLayoutPanel1.Controls.Add(this.tbLowLevel, 1, 2);
+            this.tableLayoutPanel1.Controls.Add(this.btnBrowseHighLevel, 2, 1);
+            this.tableLayoutPanel1.Controls.Add(this.btnBrowseLowLevel, 2, 2);
+            this.tableLayoutPanel1.Controls.Add(this.textBoxUserID, 1, 10);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(8, 13);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 11;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(458, 285);
+            this.tableLayoutPanel1.TabIndex = 15;
+            // 
+            // lblUserID
+            // 
+            this.lblUserID.AutoSize = true;
+            this.lblUserID.Location = new System.Drawing.Point(3, 251);
+            this.lblUserID.Name = "lblUserID";
+            this.lblUserID.Size = new System.Drawing.Size(40, 13);
+            this.lblUserID.TabIndex = 21;
+            this.lblUserID.Text = "UserID";
+            // 
+            // ddIRMethod
+            // 
+            this.ddIRMethod.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.ddIRMethod.FormattingEnabled = true;
+            this.ddIRMethod.Location = new System.Drawing.Point(139, 61);
+            this.ddIRMethod.Name = "ddIRMethod";
+            this.ddIRMethod.Size = new System.Drawing.Size(165, 21);
+            this.ddIRMethod.TabIndex = 5;
+            // 
+            // ddVocabularyBase
+            // 
+            this.ddVocabularyBase.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.ddVocabularyBase.FormattingEnabled = true;
+            this.ddVocabularyBase.Location = new System.Drawing.Point(139, 88);
+            this.ddVocabularyBase.Name = "ddVocabularyBase";
+            this.ddVocabularyBase.Size = new System.Drawing.Size(165, 21);
+            this.ddVocabularyBase.TabIndex = 6;
+            // 
+            // ddWeightOption
+            // 
+            this.ddWeightOption.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.ddWeightOption.FormattingEnabled = true;
+            this.ddWeightOption.Location = new System.Drawing.Point(139, 115);
+            this.ddWeightOption.Name = "ddWeightOption";
+            this.ddWeightOption.Size = new System.Drawing.Size(165, 21);
+            this.ddWeightOption.TabIndex = 7;
+            // 
+            // txtThesaurus
+            // 
+            this.txtThesaurus.Location = new System.Drawing.Point(139, 142);
+            this.txtThesaurus.Name = "txtThesaurus";
+            this.txtThesaurus.Size = new System.Drawing.Size(165, 20);
+            this.txtThesaurus.TabIndex = 8;
+            // 
+            // txtStopWord
+            // 
+            this.txtStopWord.Location = new System.Drawing.Point(139, 171);
+            this.txtStopWord.Name = "txtStopWord";
+            this.txtStopWord.Size = new System.Drawing.Size(165, 20);
+            this.txtStopWord.TabIndex = 10;
+            // 
+            // lblIRMethod
+            // 
+            this.lblIRMethod.AutoSize = true;
+            this.lblIRMethod.Location = new System.Drawing.Point(3, 58);
+            this.lblIRMethod.Name = "lblIRMethod";
+            this.lblIRMethod.Size = new System.Drawing.Size(57, 13);
+            this.lblIRMethod.TabIndex = 11;
+            this.lblIRMethod.Text = "IR Method";
+            // 
+            // lblVocabularyBase
+            // 
+            this.lblVocabularyBase.AutoSize = true;
+            this.lblVocabularyBase.Location = new System.Drawing.Point(3, 85);
+            this.lblVocabularyBase.Name = "lblVocabularyBase";
+            this.lblVocabularyBase.Size = new System.Drawing.Size(87, 13);
+            this.lblVocabularyBase.TabIndex = 12;
+            this.lblVocabularyBase.Text = "Vocabulary Base";
+            // 
+            // lblWeightOption
+            // 
+            this.lblWeightOption.AutoSize = true;
+            this.lblWeightOption.Location = new System.Drawing.Point(3, 112);
+            this.lblWeightOption.Name = "lblWeightOption";
+            this.lblWeightOption.Size = new System.Drawing.Size(75, 13);
+            this.lblWeightOption.TabIndex = 13;
+            this.lblWeightOption.Text = "Weight Option";
+            // 
+            // lblThesaurusFile
+            // 
+            this.lblThesaurusFile.AutoSize = true;
+            this.lblThesaurusFile.Location = new System.Drawing.Point(3, 139);
+            this.lblThesaurusFile.Name = "lblThesaurusFile";
+            this.lblThesaurusFile.Size = new System.Drawing.Size(76, 13);
+            this.lblThesaurusFile.TabIndex = 14;
+            this.lblThesaurusFile.Text = "Thesaurus File";
+            // 
+            // lblStopWordFile
+            // 
+            this.lblStopWordFile.AutoSize = true;
+            this.lblStopWordFile.Location = new System.Drawing.Point(3, 168);
+            this.lblStopWordFile.Name = "lblStopWordFile";
+            this.lblStopWordFile.Size = new System.Drawing.Size(74, 13);
+            this.lblStopWordFile.TabIndex = 15;
+            this.lblStopWordFile.Text = "StopWord File";
+            // 
+            // ddFeedbackMethod
+            // 
+            this.ddFeedbackMethod.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.ddFeedbackMethod.FormattingEnabled = true;
+            this.ddFeedbackMethod.Location = new System.Drawing.Point(139, 200);
+            this.ddFeedbackMethod.Name = "ddFeedbackMethod";
+            this.ddFeedbackMethod.Size = new System.Drawing.Size(165, 21);
+            this.ddFeedbackMethod.TabIndex = 12;
+            // 
+            // lblFeedbackMethod
+            // 
+            this.lblFeedbackMethod.AutoSize = true;
+            this.lblFeedbackMethod.Location = new System.Drawing.Point(3, 197);
+            this.lblFeedbackMethod.Name = "lblFeedbackMethod";
+            this.lblFeedbackMethod.Size = new System.Drawing.Size(94, 13);
+            this.lblFeedbackMethod.TabIndex = 17;
+            this.lblFeedbackMethod.Text = "Feedback Method";
+            // 
+            // ddMode
+            // 
+            this.ddMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.ddMode.FormattingEnabled = true;
+            this.ddMode.Location = new System.Drawing.Point(139, 227);
+            this.ddMode.Name = "ddMode";
+            this.ddMode.Size = new System.Drawing.Size(165, 21);
+            this.ddMode.TabIndex = 13;
+            // 
+            // lblProjectMode
+            // 
+            this.lblProjectMode.AutoSize = true;
+            this.lblProjectMode.Location = new System.Drawing.Point(3, 224);
+            this.lblProjectMode.Name = "lblProjectMode";
+            this.lblProjectMode.Size = new System.Drawing.Size(84, 13);
+            this.lblProjectMode.TabIndex = 19;
+            this.lblProjectMode.Text = "Mode Of Project";
+            // 
+            // btnBrowseThesaurus
+            // 
+            this.btnBrowseThesaurus.Location = new System.Drawing.Point(313, 142);
+            this.btnBrowseThesaurus.Name = "btnBrowseThesaurus";
+            this.btnBrowseThesaurus.Size = new System.Drawing.Size(75, 23);
+            this.btnBrowseThesaurus.TabIndex = 9;
+            this.btnBrowseThesaurus.Text = "Browse";
+            this.btnBrowseThesaurus.UseVisualStyleBackColor = true;
+            this.btnBrowseThesaurus.Click += new System.EventHandler(this.btnBrowseThesaurus_Click);
+            // 
+            // btnBrowseStopWord
+            // 
+            this.btnBrowseStopWord.Location = new System.Drawing.Point(313, 171);
+            this.btnBrowseStopWord.Name = "btnBrowseStopWord";
+            this.btnBrowseStopWord.Size = new System.Drawing.Size(75, 23);
+            this.btnBrowseStopWord.TabIndex = 11;
+            this.btnBrowseStopWord.Text = "Browse";
+            this.btnBrowseStopWord.UseVisualStyleBackColor = true;
+            this.btnBrowseStopWord.Click += new System.EventHandler(this.btnBrowseStopWord_Click);
+            // 
+            // lblHighDocPath
+            // 
+            this.lblHighDocPath.AutoSize = true;
+            this.lblHighDocPath.Location = new System.Drawing.Point(3, 0);
+            this.lblHighDocPath.Name = "lblHighDocPath";
+            this.lblHighDocPath.Size = new System.Drawing.Size(113, 26);
+            this.lblHighDocPath.TabIndex = 5;
+            this.lblHighDocPath.Text = "High Level Document Path";
+            // 
+            // lblLowDocPath
+            // 
+            this.lblLowDocPath.AutoSize = true;
+            this.lblLowDocPath.Location = new System.Drawing.Point(3, 29);
+            this.lblLowDocPath.Name = "lblLowDocPath";
+            this.lblLowDocPath.Size = new System.Drawing.Size(111, 26);
+            this.lblLowDocPath.TabIndex = 4;
+            this.lblLowDocPath.Text = "Low Level Document Path";
+            // 
+            // tbHighLevel
+            // 
+            this.tbHighLevel.Location = new System.Drawing.Point(139, 3);
+            this.tbHighLevel.Name = "tbHighLevel";
+            this.tbHighLevel.Size = new System.Drawing.Size(165, 20);
+            this.tbHighLevel.TabIndex = 1;
+            // 
+            // tbLowLevel
+            // 
+            this.tbLowLevel.Location = new System.Drawing.Point(139, 32);
+            this.tbLowLevel.Name = "tbLowLevel";
+            this.tbLowLevel.Size = new System.Drawing.Size(165, 20);
+            this.tbLowLevel.TabIndex = 3;
+            // 
+            // btnBrowseHighLevel
+            // 
+            this.btnBrowseHighLevel.Location = new System.Drawing.Point(313, 3);
+            this.btnBrowseHighLevel.Name = "btnBrowseHighLevel";
+            this.btnBrowseHighLevel.Size = new System.Drawing.Size(75, 23);
+            this.btnBrowseHighLevel.TabIndex = 2;
+            this.btnBrowseHighLevel.Text = "Browse";
+            this.btnBrowseHighLevel.UseVisualStyleBackColor = true;
+            this.btnBrowseHighLevel.Click += new System.EventHandler(this.btnBrowseHighLevel_Click);
+            // 
+            // btnBrowseLowLevel
+            // 
+            this.btnBrowseLowLevel.Location = new System.Drawing.Point(313, 32);
+            this.btnBrowseLowLevel.Name = "btnBrowseLowLevel";
+            this.btnBrowseLowLevel.Size = new System.Drawing.Size(75, 23);
+            this.btnBrowseLowLevel.TabIndex = 4;
+            this.btnBrowseLowLevel.Text = "Browse";
+            this.btnBrowseLowLevel.UseVisualStyleBackColor = true;
+            this.btnBrowseLowLevel.Click += new System.EventHandler(this.btnBrowseLowLevel_Click);
+            // 
+            // textBoxUserID
+            // 
+            this.textBoxUserID.Location = new System.Drawing.Point(139, 254);
+            this.textBoxUserID.Name = "textBoxUserID";
+            this.textBoxUserID.Size = new System.Drawing.Size(165, 20);
+            this.textBoxUserID.TabIndex = 20;
+            // 
+            // ProjectSettingsDialog
+            // 
+            this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
+            this.ClientSize = new System.Drawing.Size(474, 340);
+            this.Controls.Add(this.tableLayoutPanel1);
+            this.Name = "ProjectSettingsDialog";
+            this.ShowInTaskbar = true;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "Project Settings";
+            this.Controls.SetChildIndex(this.tableLayoutPanel1, 0);
+            this.Controls.SetChildIndex(this.Line1, 0);
+            this.Controls.SetChildIndex(this.cbOk, 0);
+            this.Controls.SetChildIndex(this.cbCancel, 0);
+            this.tableLayoutPanel1.ResumeLayout(false);
+            this.tableLayoutPanel1.PerformLayout();
+            this.ResumeLayout(false);
+
+		}
+
+        private TableLayoutPanel tableLayoutPanel1;
+        private Label lblLowDocPath;
+        private Label lblHighDocPath;
+        private Label lblIRMethod;
+        private Label lblVocabularyBase;
+        private Label lblWeightOption;
+        private Label lblThesaurusFile;
+        private Label lblStopWordFile;
+        private Label lblFeedbackMethod;
+        private TextBox tbLowLevel;
+        private TextBox tbHighLevel;
+        private ComboBox ddIRMethod;
+        private ComboBox ddVocabularyBase;
+        private ComboBox ddWeightOption;
+        private TextBox txtThesaurus;
+        private TextBox txtStopWord;
+        private ComboBox ddFeedbackMethod;
+        private ComboBox ddMode;
+        private Label lblProjectMode;
+        private Button btnBrowseLowLevel;
+        private Button btnBrowseHighLevel;
+        private Button btnBrowseThesaurus;
+        private Button btnBrowseStopWord;
+
+		#endregion
+        private Label lblUserID;
+        private TextBox textBoxUserID;
+
+    }
+}

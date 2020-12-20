@@ -1,0 +1,391 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using org.traceabilitycenter.RetroToolkit;
+using org.traceabilitycenter.RetroToolkit.Data;
+using System.Windows.Forms;
+using System.IO;
+using System.Data;
+
+namespace org.traceabilitycenter.Retro.UI
+{
+    public partial class ReportDialog : CustomDialog.BaseDialog
+    {
+        RetroDocument _document;
+
+        //ReportType variable which types of reports that the user wants
+        //to be generated.
+        public enum ReportType : int
+        {
+            RTM = 1,
+            RTM_With_Text = 2,
+            Parents_with_no_children = 3,
+            Parents_with_no_children_with_text = 4,
+            Children_with_no_parents = 5,
+            Children_with_no_parents_with_text = 6,
+            Not_Satisfied = 7,
+            Not_Satisfied_with_Text = 8
+        };
+
+        public void WriteReportTo(ReportType[] option, TextWriter reportWriter)
+        {
+            // List of report options below:
+            // RTM = 1, RTM_With_Text = 2, Parents_with_no_children = 3, Parents_with_no_children_with_text = 4, Children_with_no_parents = 5, Children_with_no_parents_with_text = 6, Not_Satisfied = 7, Not_Satisfied_with_Text = 8
+            // text refers to the descriptions of the requirements
+
+//            IDocumentCollection highView = _document.HighLevelRequirements;
+//            IDocumentCollection lowView = _document.LowLevelRequirements;
+//            IDocumentCollection linkedView = _document.LinkedRequirements;
+
+            // Loop through the options vector to generate the requested report and append the
+            // the report results in a single file
+            for (int j = 0; j < option.Length; j++)
+            {
+                switch (option[j])
+                {
+                    case ReportType.RTM:
+                        //RTM
+                        //Generate a report that displays High-level IDs with all of the linked low-level IDs
+                        //Implementation: Use dataview rowfilter with sorting to write the report results
+                        //Filter on the high-level ids
+                        //Report Format:
+                        //High-level Requirents ID       Low-level Requirements ID
+                        //Write the title of report
+
+                        reportWriter.WriteLine("*********************************************");
+                        reportWriter.Write("Project Name : ");
+                        reportWriter.WriteLine(_document.Name);
+                        reportWriter.WriteLine("Report Name : RTM");
+                        reportWriter.WriteLine("*********************************************");
+
+                        //Write out the High-level requirement and its linked low-level requirements
+                        foreach (IDocument dr in _document.HighLevelRequirements)
+                        {
+                            reportWriter.Write(dr.ID);
+                            reportWriter.Write("\t");
+
+                            foreach (ICandidateLink link in dr.CandidateLinks)
+                            {
+                                if (link.LinkStatus == "Not A Link") continue;
+                                reportWriter.Write(link.ID);
+                                reportWriter.Write("\t");
+                            }
+                            reportWriter.Write(Environment.NewLine);
+                        }//end for stmt
+                        //Add space between report generation
+                        reportWriter.Write(Environment.NewLine);
+                        break;
+
+                    case ReportType.RTM_With_Text:
+                        //RTM with Text
+                        //Generate a report that displays
+                        //Implementation: Use dataview rowfilter with sorting to write the report results
+                        //Filter on the high-level ids
+                        //Report Format:
+                        //High Level ID "space" HLR Status
+                        //High Level Description
+                        //Low Level Requirements "tab" Linked Status
+                        //Low Level Description
+
+                        //Write the title of report
+                        reportWriter.WriteLine("*********************************************");
+                        reportWriter.Write("Project Name : ");
+                        reportWriter.WriteLine(_document.Name);
+                        reportWriter.WriteLine("Report Name : RTM with text");
+                        reportWriter.WriteLine("*********************************************");
+
+                        //Write out the High-level requirement and its linked low-level requirements
+                        foreach (IDocument dr in _document.HighLevelRequirements)
+                        {
+                            reportWriter.Write(dr.ID);
+                            reportWriter.Write("\t");
+                            reportWriter.Write(dr.Status);
+                            reportWriter.Write(Environment.NewLine);
+                            reportWriter.Write(dr.Description.Replace("\r", "").Replace("\n", " "));
+                            reportWriter.Write(Environment.NewLine);
+
+                            foreach (ICandidateLink link in dr.CandidateLinks)
+                            {
+                                if (link.LinkStatus == "Not A Link") continue;
+                                reportWriter.Write(link.ID);
+                                reportWriter.Write("\t");
+                                reportWriter.Write(link.LinkStatus);
+                                reportWriter.Write(Environment.NewLine);
+                                reportWriter.Write(link.Description.Replace("\r", "").Replace("\n", " "));
+                                reportWriter.Write(Environment.NewLine);
+                            }
+                            reportWriter.Write(Environment.NewLine);
+                        }
+                        break;
+
+                    case ReportType.Parents_with_no_children:
+
+                        //Parent with no children
+                        //Generate a report that displays
+                        //Implementation: Compare the HLR Datatable with the LinkedDataTable
+                        //if the ID from the HLR Datatable is not found in the LinkedDataTable
+                        //then display
+                        //Report Format:
+                        //High-level Requirement ID
+
+                        //Write the title of report
+                        reportWriter.WriteLine("*********************************************");
+                        reportWriter.Write("Project Name : ");
+                        reportWriter.WriteLine(_document.Name);
+                        reportWriter.WriteLine("Report Name : Parents With No Children");
+                        reportWriter.WriteLine("*********************************************");
+
+                        //Write out the High-level requirement
+                        foreach (IDocument dr in _document.HighLevelRequirements)
+                        {
+                            int childCount = 0;
+                            foreach (ICandidateLink link in dr.CandidateLinks)
+                            {
+                                if (link.LinkStatus == "Not A Link") continue;
+                                childCount++;
+                            }
+                            if (childCount == 0)
+                            {
+                                reportWriter.Write(dr.ID);
+                                reportWriter.Write(Environment.NewLine);
+                            }
+                        }
+                        break;
+
+                    case ReportType.Parents_with_no_children_with_text:
+                        //Parents with no children with text
+                        //Generate a report that displays
+                        //Implementation: Compare the HLR Datatable with the LinkedDataTable
+                        //if the ID from the HLR Datatable is not found in the LinkedDataTable
+                        //then display
+                        //Report Format:
+                        //High-level Requirement ID "space" HLR Status
+                        ////High-level Requirement Description
+                        //Write the title of report
+                        reportWriter.WriteLine("*********************************************");
+                        reportWriter.Write("Project Name : ");
+                        reportWriter.WriteLine(_document.Name);
+                        reportWriter.WriteLine("Report Name : Parents With No Children With Text");
+                        reportWriter.WriteLine("*********************************************");
+
+                        //Write out the High-level requirement
+                        foreach (IDocument dr in _document.HighLevelRequirements)
+                        {
+                            int childCount = 0;
+                            foreach (ICandidateLink link in dr.CandidateLinks)
+                            {
+                                if (link.LinkStatus == "Not A Link") continue;
+                                childCount++;
+                            }
+                            if (childCount == 0)
+                            {
+                                reportWriter.Write(dr.ID);
+                                reportWriter.Write("\t");
+                                reportWriter.Write(dr.Status);
+                                reportWriter.Write(Environment.NewLine);
+                                reportWriter.Write(dr.Description.Replace("\r", "").Replace("\n", " "));
+                                reportWriter.Write(Environment.NewLine);
+                            }
+                        }
+                        break;
+
+                    case ReportType.Children_with_no_parents:
+
+                        //Children with no parents
+                        //Generate a report that displays
+                        //Implementation: Compare the LLR Datatable with the LinkedDataTable
+                        //if the ID from the HLR Datatable is not found in the LinkedDataTable
+                        //then display
+                        //Report Format:
+                        //Low-Level Requirement ID
+                        //Write the title of report
+                        reportWriter.WriteLine("*********************************************");
+                        reportWriter.Write("Project Name : ");
+                        reportWriter.WriteLine(_document.Name);
+                        reportWriter.WriteLine("Report Name : List of children without parents");
+                        reportWriter.WriteLine("*********************************************");
+
+
+                        //Write out the Low-level requirement if no parent
+                        foreach (IDocument dr in _document.LowLevelRequirements)
+                        {
+                            int childCount = 0;
+                            foreach (ICandidateLink link in dr.CandidateLinks)
+                            {
+                                if (link.LinkStatus == "Not A Link") continue;
+                                childCount++;
+                            }
+                            if (childCount == 0)
+                            {
+                                reportWriter.Write(dr.ID);
+                                reportWriter.Write("\t");
+                                reportWriter.Write(dr.Status);
+                                reportWriter.Write(Environment.NewLine);
+                            }
+                        }
+                        break;
+
+                    case ReportType.Children_with_no_parents_with_text:
+                        //Children with no parents with text
+                        //Generate a report that displays
+                        //Implementation: Compare the LLR Datatable with the LinkedDataTable
+                        //if the ID from the HLR Datatable is not found in the LinkedDataTable
+                        //then display
+                        //Report Format:
+                        //Low-Level Requirement ID
+                        //Low-Level Requirement Description
+                        //Write the title of report
+                        reportWriter.WriteLine("*********************************************");
+                        reportWriter.Write("Project Name : ");
+                        reportWriter.WriteLine(_document.Name);
+                        reportWriter.WriteLine("Report Name : List of children without parents with text");
+                        reportWriter.WriteLine("*********************************************");
+
+                        //Write out the Low-level requirement if no parent
+                        foreach (IDocument dr in _document.LowLevelRequirements)
+                        {
+                            int childCount = 0;
+                            foreach (ICandidateLink link in dr.CandidateLinks)
+                            {
+                                if (link.LinkStatus == "Not A Link") continue;
+                                childCount++;
+                            }
+                            if (childCount == 0)
+                            {
+                                reportWriter.Write(dr.ID);
+                                reportWriter.Write("\t");
+                                reportWriter.Write(dr.Status);
+                                reportWriter.Write(Environment.NewLine);
+                                reportWriter.Write(dr.Description.Replace("\r", "").Replace("\n", " "));
+                                reportWriter.Write(Environment.NewLine);
+                            }
+                        }
+                        break;
+
+                    case ReportType.Not_Satisfied:
+                        {
+                            //Not Satisfied
+                            //Generate a report that displays
+                            //Implementation: Search through HighLevelRequirements Datatable
+                            //display only the HLR ID with status=="not satisfied"
+                            //Report Format:
+                            //High level requirements
+                            //Write the title of report
+                            reportWriter.WriteLine("*********************************************");
+                            reportWriter.Write("Project Name : ");
+                            reportWriter.WriteLine(_document.Name);
+                            reportWriter.WriteLine("Report Name : List of not satisfied requirements");
+                            reportWriter.WriteLine("*********************************************");
+
+                            //Write out the High-level requirement
+                            foreach (IDocument dr in _document.HighLevelRequirements)
+                            {
+                                if (dr.Status == "Not Satisfied")
+                                {
+                                    reportWriter.Write(dr.ID);
+                                    reportWriter.Write("\t");
+                                    reportWriter.Write(dr.Status);
+                                    reportWriter.Write(Environment.NewLine);
+                                }
+                            }
+                        }
+                        break;
+
+                    case ReportType.Not_Satisfied_with_Text:
+                        {
+
+                            //Not Satisfied with Text
+                            //Generate a report that displays
+                            //Implementation: Search through HighLevelRequirements Datatable
+                            //display only the HLR ID with status=="not satisfied"
+                            //Report Format:
+                            //High level requirements "tab" HLR Status
+                            //High level requirements description
+                            //Write the title of report
+                            reportWriter.WriteLine("*********************************************");
+                            reportWriter.Write("Project Name : ");
+                            reportWriter.WriteLine(_document.Name);
+                            reportWriter.WriteLine("Report Name : List of not satisfied requirements with text");
+                            reportWriter.WriteLine("*********************************************");
+
+                            //Write out the High-level requirement
+                            foreach (IDocument dr in _document.HighLevelRequirements)
+                            {
+                                if (dr.Status == "Not Satisfied")
+                                {
+                                    reportWriter.Write(dr.ID);
+                                    reportWriter.Write("\t");
+                                    reportWriter.Write(dr.Status);
+                                    reportWriter.Write(Environment.NewLine);
+                                    reportWriter.Write(dr.Description.Replace("\r", "").Replace("\n", " "));
+                                    reportWriter.Write(Environment.NewLine);
+                                }
+                            }
+                        }
+
+                        break;
+
+                    default:
+                        break;
+                }//end switch
+            }//end for loop
+
+            //Close StreamWriters
+            reportWriter.Close();
+        }
+    
+        public ReportDialog(RetroDocument document)
+        {
+            InitializeComponent();
+            _document = document;
+            this.cbCancel.Visible = false;
+            this.Text = "Generate Reports";
+
+            foreach (string report in Enum.GetNames(typeof(ReportType)))
+            {
+                this.chklstReports.Items.Add(report.Replace("_"," "));
+            }
+            
+            this.chklstReports.Select();
+        }
+
+        protected override bool OnOk()
+        {
+            ReportType[] reports = new ReportType[this.chklstReports.CheckedItems.Count];
+            for(int i = 0; i < reports.Length; i++) {
+                reports[i] = (ReportType)Enum.Parse(
+                    typeof(ReportType),
+                    this.chklstReports.CheckedItems[i].ToString().Replace(" ", "_")
+                );
+            }
+            
+            StringWriter writer = new StringWriter();
+            WriteReportTo(reports, writer);
+            ShowTextDialog std = new ShowTextDialog();
+            
+            std.Text = "Report";
+            std.Show(writer.ToString());
+            return base.OnOk();
+        }
+    }
+}

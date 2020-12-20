@@ -1,0 +1,15 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace org.traceabilitycenter.RetroToolkit.Data
+{
+    public interface ITermCollection : IDictionary<String, ITerm>
+    {
+        /// <summary>
+        /// Resets the ID values of the collection by sorting the collection
+        /// in alphabetical order and assigning increasing values to each item
+        /// </summary>
+        void ResetIDs();
+    }
+}

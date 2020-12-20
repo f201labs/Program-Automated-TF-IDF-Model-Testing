@@ -1,0 +1,42 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+using org.traceabilitycenter.RetroToolkit.Data;
+using org.traceabilitycenter.RetroToolkit.Basic.Data;
+using OpenNLP.Tools.Parser;
+
+namespace org.traceabilitycenter.RetroToolkit.NLP
+{
+    public class VocabularyFilterRemoveIN : IVocabularyFilter
+    {
+        public VocabularyFilterRemoveIN()
+        {
+        }
+        #region IVocabularyFilter Members
+
+        public void applyVocabularyFilter(RetroDocument doc)
+        {
+            foreach (Term t in doc.Vocabulary.Values)
+            {
+                System.Diagnostics.Trace.WriteLine(t.Text + "\t" + t.Frequency + "\t" + t.DocNumber);
+            }
+        }
+
+        #endregion
+
+        #region IPlugin Members
+
+        public int getPluginID()
+        {
+            return 4;
+        }
+
+        public string getPluginName()
+        {
+            return "NLP Remove IN Filter";
+        }
+
+        #endregion
+    }
+}

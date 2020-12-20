@@ -1,0 +1,1 @@
+While in ASSESS mode, the user will need a mechanism to allow the removal of all low-level requirements that are not linked to a high-level requirement.  REMOVE ALL NO LINKS function will provide an easy way for the user to quickly remove low-level requirements with status of “No Link”. RETRO shall remove all links marked as “No Link”

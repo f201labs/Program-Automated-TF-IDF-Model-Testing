@@ -1,0 +1,101 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using org.traceabilitycenter.RetroToolkit.Data;
+
+namespace org.traceabilitycenter.RetroToolkit.Basic.Data
+{
+    public class Term : ITerm
+    {
+        private int _id = int.MaxValue;
+        public int ID
+        {
+            get { return _id; }
+            set { _id = value; }
+        }
+
+        /// <summary>
+        /// the term
+        /// </summary>
+        private String _text = String.Empty;
+        public String Text
+        {
+            get { return _text; }
+            set { _text = value; }
+        }
+        
+        /// <summary>
+        /// number of times the term occurs
+        /// </summary>
+        private int _frequency = 0;
+        public int Frequency
+        {
+            get { return _frequency; }
+            set { _frequency = value; }
+        }
+
+        /// <summary>
+        /// number of documents the word occurs in
+        /// </summary>
+        private int _docNumber = 0;
+        public int DocNumber
+        {
+            get { return _docNumber; }
+            set { _docNumber = value; }
+        }
+
+        DocFileBase _fileBase = DocFileBase.Low_Level_Document_Only;
+
+        public DocFileBase FileBase
+        {
+            get { return _fileBase; }
+            set { _fileBase = value; }
+        }
+
+        //public bool Thesaurus = false;
+        
+        //public int Position = 0;
+        
+        //public int PassThreshold = 0;
+        
+        //public int CoTermCount = 0;
+        
+        //public int ChiSquare = 0;
+
+        private double _modifier = 0.0;
+        public double Modifier
+        {
+            get { return _modifier; }
+            set { _modifier = value; }
+        }
+
+        public Term() { }
+        
+        public Term(String text) { this.Text = text; }
+        
+        public override string ToString()
+        {
+            return (Text == null) ? String.Empty : Text;
+        }
+    }
+}

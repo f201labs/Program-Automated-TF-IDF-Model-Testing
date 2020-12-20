@@ -1,0 +1,1 @@
+The START NEW PROJECT function shall allow the user to create a new project. If the user has selected an IR Method of Keyword Extraction or Keyword Extraction-IDF, the user must also select a Weight Threshold.

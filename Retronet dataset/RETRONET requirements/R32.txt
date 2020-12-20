@@ -1,0 +1,1 @@
+The CLOSE CURRENT PROJECT Function will allow the user to close a given project without exiting the RETRO application. The user shall be able close the current project.

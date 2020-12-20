@@ -1,0 +1,167 @@
+/*
+    Copyright © 2006, Jody Larsen
+    All rights reserved.
+    http://www.dreamfrog.com/
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+  THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+  INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+  OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Data;
+using System.Collections.Specialized;
+using org.traceabilitycenter.RetroToolkit.Data;
+using org.traceabilitycenter.RetroToolkit.Basic.Data;
+using OpenNLP.Tools.Parser;
+
+namespace org.traceabilitycenter.RetroToolkit.NLP
+{
+
+    public class DocumentAnalyzerNLP : IDocumentLexicalAnalyzer
+    {
+        #region IDocumentAnalyzer Members
+
+        EnglishTreebankParser mParser = null;
+
+        public DocumentAnalyzerNLP() {
+            String mModelPath = @"C:\Documents and Settings\jllars0\My Documents\Visual Studio 2005\Projects\englishparsing_net2_0_src\OpenNLP\OpenNLP\Models\";
+            mParser = new EnglishTreebankParser(mModelPath, true, false);
+        }
+
+        public DocumentAnalyzerNLP(DocFileBase fileBase) : this() { _fileBase = fileBase; }
+
+        //Which Vocabulary base to use
+        public enum DocFileBase : int
+        {
+            Low_Level_Document_Only = 1, Both_Documents = 2
+        };
+
+        DocFileBase _fileBase = DocFileBase.Low_Level_Document_Only;
+
+        public DocFileBase FileBase
+        {
+            get { return _fileBase; }
+            set { _fileBase = value; }
+        }
+
+        public void analyzeDocumentCollection(IDocumentCollection docs, ITermCollection vocabulary, IVocabularyStemmer stemmer)
+        {
+            String punct = new String(delims);
+            int count = 0;
+            foreach(IDocument doc in docs) {
+                List<Parse> nodes = new List<Parse>();
+                String text = doc.Description.Replace('-', ' ');
+                foreach (char c in delims)
+                {
+                    text = text.Replace(c.ToString(), " "+c+" ");
+                }
+                Parse root = mParser.DoParse(text);
+                getLeaves(root, nodes);
+
+                foreach (Parse node in nodes)
+                {
+                    if (punct.Contains(node.Parent.Type)) continue;
+                    if (node.Parent.Type == "IN" || node.Parent.Type == "DT" || node.Parent.Type == "CC") continue;
+                    if (node.Parent.Type == "-LRB-" || node.Parent.Type == "-RRB-") continue; 
+                    String word = node.Text.Substring(node.Span.Start, node.Span.Length()).Trim().ToLower();
+                    if (word == "-LRB-" || word == "-RRB-" || word == "_ERR_REPEAT") continue;
+                    if (punct.Contains(word)) continue;
+                    //if (node.Parent.Type != "JJ" && node.Parent.Type != "NN" && node.Parent.Type != "NNP" && node.Parent.Type != "CD" && node.Parent.Type != "NNS"  && node.Parent.Type != "VBZ") continue;
+                    processWord(word, doc, vocabulary, stemmer);
+                }
+                System.Diagnostics.Trace.WriteLine("doc=" + (count++));
+            }
+        }
+        #endregion
+
+        protected void getLeaves(Parse p, List<Parse> list)
+        {
+            if (p.ChildCount == 0)
+            {
+                list.Add(p);
+            }
+            else
+            {
+                foreach (Parse pChild in p.GetChildren())
+                {
+                    getLeaves(pChild, list);
+                }
+            }
+        }
+
+        protected void processWord(String word, IDocument doc, ITermCollection vocabulary, IVocabularyStemmer stemmer)
+        {
+            foreach (char c in delims)
+            {
+                if (word.Contains(c.ToString()))
+                {
+                    int wer = 234;
+
+                }
+            }
+
+            //stem the word to prevent duplicates such as sail and sails
+            String stemmedWord = stemmer.stemTerm(word);
+
+            //if this word only exists in the high level documents, and the document vocabulary is based only on low level documents, continue to the next word
+            if (!vocabulary.ContainsKey(stemmedWord) && doc.Type == DocumentType.High && _fileBase == DocFileBase.Low_Level_Document_Only) return;
+
+            //if the word isn't in the vocabulary list, add it                    
+            if (!vocabulary.ContainsKey(stemmedWord))
+            {
+                vocabulary.Add(stemmedWord, new Term(stemmedWord));
+            }
+
+            //Increment the global frequency of the word by one occurance
+            vocabulary[stemmedWord].Frequency++;
+
+            //if the word hasn't already been found for this document, add it
+            IDocumentTerm dTerm = doc.Keywords.FindByTerm(stemmedWord);
+            if (dTerm == null)
+            {
+                dTerm = new DocumentTerm(vocabulary[stemmedWord]);
+                doc.Keywords.Add(dTerm);
+
+                //Increment the count of documents the word occurs in by one
+                vocabulary[stemmedWord].DocNumber++;
+            }
+
+            //Increment the document frequency of the word by one occurance
+            dTerm.Frequency++;
+        }
+
+        #region IPlugin Members
+
+        public int getPluginID()
+        {
+            return 0;
+        }
+
+        public string getPluginName()
+        {
+            return "NLP Analysis";
+        }
+
+        #endregion
+
+        protected static char[] delims = new char[] { '!', '?', '[', ']', '{', '}', '+', '-', '`', '"', ' ', '<', '>', ',', ':', ';', '#', '=', '/', '\t', '\n', '\r', '*', '.', '(', ')', '\\', '\'' };
+        public static ICollection<string> tokenizeText(string text)
+        {
+            return text.ToLower().Split(delims, StringSplitOptions.RemoveEmptyEntries);
+        }
+    }
+
+}
+

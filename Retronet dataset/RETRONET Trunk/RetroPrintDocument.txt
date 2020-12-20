@@ -1,0 +1,160 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using org.traceabilitycenter.Retro;
+using System.Drawing;
+using org.traceabilitycenter.RetroToolkit;
+using org.traceabilitycenter.RetroToolkit.Data;
+using System.Data;
+
+namespace org.traceabilitycenter.Retro.UI
+{
+
+    /// <summary>
+    /// A printable version of RTMDocument
+    /// </summary>
+    public class RetroPrintDocument : System.Drawing.Printing.PrintDocument
+    {
+        private static string acceptSymbol = ((char)80).ToString();
+        private static string rejectSymbol = "X";
+
+        private RetroDocument _project;
+        public RetroDocument Project
+        {
+            get
+            {
+                return _project;
+            }
+            set
+            {
+                _project = value;
+            }
+        }
+
+        public RetroPrintDocument() { }
+
+        int startrow = 0, startcol = 0;
+
+        protected override void OnBeginPrint(System.Drawing.Printing.PrintEventArgs e)
+        {
+            base.OnBeginPrint(e);
+            startrow = 0; 
+            startcol = 0;
+        }
+        
+        protected override void OnPrintPage(System.Drawing.Printing.PrintPageEventArgs e)
+        {
+            if(Project == null) return;
+
+            Graphics g = e.Graphics;
+            Font messageFont = new Font("Arial", 11, System.Drawing.GraphicsUnit.Point);
+
+            float cellSize = messageFont.Height + 4f;
+
+            //Calculate rowTop
+            float rowTop = 0f;
+            for(int i = startcol; i < Project.LowLevelRequirements.Count; i++) {
+                rowTop = Math.Max(rowTop, g.MeasureString(Project.LowLevelRequirements[i].ID, messageFont).Width);
+            }
+            rowTop += e.MarginBounds.Top;
+
+            //Calculate rowLeft
+            float rowLeft = 0;
+            float tableHeight = 0;
+            for(int i = startrow; i < Project.HighLevelRequirements.Count; i++) {
+                IDocument dr = Project.HighLevelRequirements[i];
+                if (tableHeight + rowTop + messageFont.Height + 4f > e.MarginBounds.Bottom) break;
+                SizeF strSize = g.MeasureString(dr.ID, messageFont);
+                rowLeft = Math.Max(rowLeft, strSize.Width);
+                tableHeight += messageFont.Height + 4f;
+            }
+            int numcols = Math.Min((int)((e.MarginBounds.Width - rowLeft - 8f) / (messageFont.Height + 4f)), Project.LowLevelRequirements.Count - startcol);
+            float tableWidth = numcols * (messageFont.Height + 4f) + 2f;
+
+            rowLeft += e.MarginBounds.Left;
+            tableHeight -= 8f;
+                        
+            //Draw Row Headers
+            float y = rowTop;
+            int numrows = 0;
+            for (int i = startrow; i < Project.HighLevelRequirements.Count; i++)
+            {
+                IDocument dr = Project.HighLevelRequirements[i];
+                numrows++;
+                g.DrawString(dr.ID, messageFont, Brushes.Black, e.MarginBounds.Left, y, new StringFormat(StringFormatFlags.NoClip));
+                y += cellSize;
+                if (y > rowTop + tableHeight) break;
+                g.DrawLine(Pens.Black, e.MarginBounds.Left, y - 2f, rowLeft + tableWidth, y - 2f);
+            }
+            //border
+            g.DrawRectangle(Pens.Black, e.MarginBounds.Left, rowTop - 2f, rowLeft - e.MarginBounds.Left + tableWidth, y - rowTop - 2f);
+
+            //Draw Column Headers
+            float x = rowLeft + 2f;
+            for (int i = startcol; i < Project.LowLevelRequirements.Count && i < startcol+numcols; i++)
+            {
+                g.DrawLine(Pens.Black, x - 2, e.MarginBounds.Top, x - 2, rowTop + tableHeight + 4f);
+                IDocument dr = Project.LowLevelRequirements[i];
+                String message = dr.ID;
+                g.DrawString(message, messageFont, Brushes.Black, x, e.MarginBounds.Top, new StringFormat(StringFormatFlags.DirectionVertical));
+                SizeF strSize = g.MeasureString(message, messageFont);
+                if (x > e.MarginBounds.Right) break;
+                x += cellSize;
+            }
+            g.DrawRectangle(Pens.Black, rowLeft, e.MarginBounds.Top, tableWidth, rowTop - e.MarginBounds.Top + tableHeight + 4f);
+
+            //Draw the accept and reject symbols
+            messageFont = new Font("Wingdings 2", 14, System.Drawing.GraphicsUnit.Point);
+            messageFont = new Font(messageFont, FontStyle.Bold);
+            for (int col = startcol; col < Project.LowLevelRequirements.Count && (col - startcol) < startcol + numcols; col++)
+            {
+                for (int row = startrow; row < Project.HighLevelRequirements.Count && (row - startrow) < numrows; row++)
+                {
+                    ICandidateLink link = Project.HighLevelRequirements[row].CandidateLinks.FindByHighLevelDocLowLevelDoc(Project.HighLevelRequirements[row], Project.LowLevelRequirements[col]);
+
+                    if(link == null) continue;
+                    if(link.LinkStatus.Equals("Link") || link.LinkStatus.Equals("Possible Link") || link.LinkStatus.Equals("AutoLink") ) {
+                        g.DrawString(acceptSymbol, messageFont, Brushes.Green, (col - startcol) * (cellSize) + rowLeft, (row - startrow) * (cellSize) + rowTop + 2f);
+                    }
+                    else if (link.LinkStatus.Equals("Not A Link"))
+                    {
+                        g.DrawString(rejectSymbol, messageFont, Brushes.Red, (col - startcol) * (cellSize) + rowLeft - 2f, (row - startrow) * (cellSize) + rowTop);
+                    }
+                }
+            }
+
+            //Pageination
+            startcol += numcols;
+            if(startcol >= Project.LowLevelRequirements.Count) {
+                startrow += numrows;
+                startcol = 0;
+            }
+            if(startcol == 0) {
+                e.HasMorePages = (startrow < Project.HighLevelRequirements.Count);
+            }
+            else {
+                e.HasMorePages = (startcol < Project.LowLevelRequirements.Count);
+            }
+        }
+    }
+}

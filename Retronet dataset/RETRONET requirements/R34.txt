@@ -1,0 +1,1 @@
+The user may want to view the current project’s XML file format.  The SHOW XML function will provide the user a display of the current XML file. The user shall be able to view the XML version of the RTM.

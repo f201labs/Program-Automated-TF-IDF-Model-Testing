@@ -1,0 +1,114 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Data;
+using System.Collections.Specialized;
+using org.traceabilitycenter.RetroToolkit.Data;
+using org.traceabilitycenter.RetroToolkit.Basic.Data;
+
+namespace org.traceabilitycenter.RetroToolkit.Basic
+{
+
+    public class DocumentAnalyzerBasic : IDocumentLexicalAnalyzer
+    {
+        #region IDocumentAnalyzer Members
+
+        public DocumentAnalyzerBasic() { }
+
+        public DocumentAnalyzerBasic(DocFileBase fileBase) { _fileBase = fileBase; }
+
+        DocFileBase _fileBase = DocFileBase.Low_Level_Document_Only;
+
+        public DocFileBase FileBase
+        {
+            get { return _fileBase; }
+            set { _fileBase = value; }
+        }
+
+        public void analyzeDocumentCollection(IDocumentCollection docs, ITermCollection vocabulary, IVocabularyStemmer stemmer)
+        {
+            foreach(Document doc in docs) {
+                foreach (String word in tokenizeText(doc.Description))
+                {
+                    //stem the word to prevent duplicates such as sail and sails
+                    String stemmedWord = stemmer.stemTerm(word);
+
+                    //if this word only exists in the high level documents, and the document vocabulary is based only on low level documents, continue to the next word
+                    if (!vocabulary.ContainsKey(stemmedWord) && doc.Type == DocumentType.High && _fileBase == DocFileBase.Low_Level_Document_Only) continue;
+
+                    //if the word isn't in the vocabulary list, add it                    
+                    if (!vocabulary.ContainsKey(stemmedWord))
+                    {
+                        vocabulary.Add(stemmedWord, new Term(stemmedWord));
+                        vocabulary[stemmedWord].FileBase = (doc.Type == DocumentType.Low ? DocFileBase.Low_Level_Document_Only : DocFileBase.High_Level_Document_Only);
+                    }
+
+                    ITerm term = vocabulary[stemmedWord];
+
+                    //Update the file base of the term
+                    if ((term.FileBase == DocFileBase.Low_Level_Document_Only && doc.Type == DocumentType.High) || term.FileBase == DocFileBase.High_Level_Document_Only && doc.Type == DocumentType.Low) term.FileBase = DocFileBase.Both_Documents;
+
+                    //Increment the global frequency of the word by one occurance
+                    term.Frequency++;
+
+                    //if the word hasn't already been found for this document, add it
+                    IDocumentTerm dTerm = doc.Keywords.FindByTerm(stemmedWord);
+                    if (dTerm == null)
+                    {
+                        dTerm = new DocumentTerm(term);
+                        doc.Keywords.Add(dTerm);
+
+                        //Increment the count of documents the word occurs in by one
+                        term.DocNumber++;
+                    }
+
+                    //Increment the document frequency of the word by one occurance
+                    dTerm.Frequency++;
+                }
+            }
+        }
+        #endregion
+
+        #region IPlugin Members
+
+        public int getPluginID()
+        {
+            return 0;
+        }
+
+        public string getPluginName()
+        {
+            return "Basic Statistical Analysis";
+        }
+
+        #endregion
+
+        // wkkong 12/29/09 - Add underscore as a delimiter.
+        protected static char[] delims = new char[] { '!', '?', '[', ']', '{', '}', '+', '-', '`', '"', ' ', '<', '>', ',', ':', ';', '#', '=', '/', '\t', '\n', '\r', '*', '.', '(', ')', '\\', '\'', '_' };
+        public static ICollection<string> tokenizeText(string text)
+        {
+            return text.ToLower().Split(delims, StringSplitOptions.RemoveEmptyEntries);
+        }
+    }
+
+}

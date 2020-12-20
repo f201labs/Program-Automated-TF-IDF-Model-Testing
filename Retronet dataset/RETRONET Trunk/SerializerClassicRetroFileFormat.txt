@@ -1,0 +1,1010 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using System.IO;
+using System.Xml;
+using System.Diagnostics;
+using System.Data;
+using org.traceabilitycenter.RetroToolkit;
+using org.traceabilitycenter.RetroToolkit.Data;
+using org.traceabilitycenter.RetroToolkit.Basic.Data;
+
+namespace org.traceabilitycenter.RetroToolkit.Basic
+{
+    public class SerializerClassicRetroFileFormat : IRetroDocumentSerializer
+    {
+        //Name of Project File
+        private String _projectFileName = String.Empty;
+        public String ProjectFileName
+        {
+            get { return _projectFileName; }
+            set { _projectFileName = (value == null) ? String.Empty : value; }
+        }
+
+        //Thesaurus File Name provided by user
+        private String _thesaurusFileName = String.Empty;
+        public String ThesaurusFileName
+        {
+            get { return _thesaurusFileName; }
+            set { _thesaurusFileName = (value == null) ? String.Empty : value; }
+        }
+
+        private String _stopWordFileName = String.Empty;
+        //Stop word file name
+        public String StopWordFileName
+        {
+            get { return _stopWordFileName; }
+            set { _stopWordFileName = (value == null) ? String.Empty : value; }
+        }
+
+        //Low level requirements file name
+        public String LowDocFileName;
+
+        //High level requirements file name
+        public String HighDocFileName;
+
+        //External RTM file name
+        /*
+        private String _externalRTMFileName;
+        public String ExternalRTMFileName
+        {
+            get { return _externalRTMFileName; }
+            set { _externalRTMFileName = value; }
+        }
+        */
+
+        //RTMFileName is the path to the Requirements Traceability Matrix
+        public String RTMFileName
+        {
+            get
+            {
+                if (ProjectFileName == null || ProjectFileName.Length <= 0)
+                {
+                    return String.Empty;
+                }
+                else
+                {
+                    return Path.GetDirectoryName(ProjectFileName) + "/result.xml";
+                }
+            }
+        }
+
+        public SerializerClassicRetroFileFormat() { }
+
+        public SerializerClassicRetroFileFormat(String highFileName, String lowFileName)
+        {
+            this.HighDocFileName = highFileName;
+            this.LowDocFileName = lowFileName;
+        }
+
+        public SerializerClassicRetroFileFormat(String highFileName, String lowFileName, String stopWordFileName)
+        {
+            this.HighDocFileName = highFileName;
+            this.LowDocFileName = lowFileName;
+            this.StopWordFileName = stopWordFileName;
+        }
+
+        public void LoadFromFile(String projectFileName, RetroDocument doc)
+        {
+            ProjectFileName = (projectFileName == null) ? String.Empty : projectFileName;
+            if (ProjectFileName.Length > 0) doc.Name = Path.GetFileName(Path.GetDirectoryName(this.ProjectFileName));
+            loadDocument(doc);
+            //if (Vocabulary.Count <= 0) { PerformInitialDocumentAnalysis(); }
+        }
+
+        #region IDocumentSerializer Members
+
+        //WriteRequirementsXMLTo will write the linked requirements to external results.xml file
+        //Generates the XML for the RTM
+        public void WriteRequirementsXMLTo(IDocumentCollection docs, TextWriter writer)
+        {
+            writer.WriteLine("<?xml version=\"1.0\"?>");
+            writer.WriteLine("<!DOCTYPE req SYSTEM \"masterDTD.dtd\">");
+            writer.WriteLine("<req>");
+
+            foreach (Document highReq in docs)
+            {
+
+                writer.Write("<high id=\"");
+                writer.Write(highReq.ID);
+                writer.Write("\" freeze=\"");
+                writer.Write(highReq.Status);
+                writer.WriteLine("\">");
+
+                //if an index exists, output all the indexed items
+                if (highReq.CandidateLinks != null)
+                {
+                    foreach (CandidateLink linkDr in highReq.CandidateLinks)
+                    {
+                        //if (linkDr.LinkStatus == "Default") continue;
+                        writer.Write("<low id=\"");
+                        writer.Write(linkDr.LowLevelDoc.ID);
+                        writer.Write("\"><weight change=\"");
+                        writer.Write((linkDr.LinkStatus.Equals("AutoLink") ? "Link" : linkDr.LinkStatus));
+                        writer.Write("\">");
+                        writer.Write(linkDr.Weight);
+                        writer.WriteLine("</weight></low>");
+                    }
+                }
+
+                writer.WriteLine("</high>");
+            }
+            writer.WriteLine("</req>");
+        }
+
+        //LoadFromFile will load the project options into the RetroDocument
+        //Loads settings and requirements from disk
+        public void loadDocument(RetroDocument doc)
+        {
+            LoadProjectFile(doc);
+
+            //Read the default stopword file in
+            doc.StopWords.Clear();
+
+            String defaultStopWordFile = System.AppDomain.CurrentDomain.BaseDirectory + "stopword_fox.dat";
+            if (File.Exists(defaultStopWordFile))
+            {
+                using (StreamReader stopwordFile = new StreamReader(File.OpenRead((defaultStopWordFile))))
+                {
+                    while (!stopwordFile.EndOfStream)
+                    {
+                        String[] modelTokens = stopwordFile.ReadLine().Split(space, StringSplitOptions.None);
+                        for (int i = 1; i < modelTokens.Length; i++)
+                        {
+                            String stopWord = doc.Stemmer.stemTerm(modelTokens[i]);
+                            if (!doc.StopWords.Contains(stopWord))
+                            {
+                                doc.StopWords.Add(stopWord);
+                            }
+                        }
+                    }
+                }
+            }
+
+            //Read the specified stopword file in
+            String stopWordFile = StopWordFileName;
+            if (File.Exists(stopWordFile))
+            {
+                using (StreamReader stopwordFile = new StreamReader(File.OpenRead((stopWordFile))))
+                {
+                    while (!stopwordFile.EndOfStream)
+                    {
+                        String stopWord = doc.Stemmer.stemTerm(stopwordFile.ReadLine().Trim().ToLower());
+                        if (!doc.StopWords.Contains(stopWord))
+                        {
+                            doc.StopWords.Add(stopWord);
+                        }
+                    }
+                }
+            }
+
+            //Load high level requirements
+            doc.HighLevelRequirements.Clear();
+            if (ProjectFileName != null && ProjectFileName.Length > 0)
+            {
+                String altHighPath = Path.GetDirectoryName(ProjectFileName) + "\\high";
+                if (!Directory.Exists(HighDocFileName) && Directory.Exists(altHighPath)) { HighDocFileName = altHighPath; }
+            }
+
+            //start of modified by Wenbin, read high level requirements from csv file
+            String[] hrequirements = Directory.GetFiles(HighDocFileName);
+
+            // the documents are in a csv file
+
+            if (hrequirements.Length > 0 && hrequirements[0].EndsWith(".csv") == true)
+            {
+                StreamReader readFile = new StreamReader(hrequirements[0]);
+
+                string line;
+
+                //the first line should be A-Spec_ID and A-Spec_Rqt, as in the example. 
+                readFile.ReadLine();
+
+                while ((line = readFile.ReadLine()) != null)
+                {
+                    int split = line.IndexOf(',');
+                    string id = line.Substring(0, split);
+                    int length = line.Length - split - 1;
+                    string content = line.Substring(split + 1, length);
+                    content = content.Replace("\"\"", "\"");
+
+                    if (content.StartsWith("\"") == true)
+                    {
+                        int end = content.Length - 1;
+                        while (content[end] != '"' || content[end] == '"' && content[end - 1] != '"')
+                        {
+                            string next_line = readFile.ReadLine();
+                            next_line = next_line.Replace("\"\"", "\"");
+                            content = content + "\n";
+                            content = content + next_line;
+                            end = content.Length - 1;
+                        }
+                    }
+
+                    if (content.StartsWith("\"") == true)
+                    {
+                        content = content.Substring(1, content.Length - 1);
+                        content = content.Remove(content.Length - 1);
+                    }
+
+                    Document d = new Document();
+                    d.Type = DocumentType.High;
+                    d.ID = id;
+                    d.Description = content;
+                    d.Status = "Not Satisfied";
+                    d.DocType = "Text";
+                    doc.HighLevelRequirements.Add(d);
+                }
+                readFile.Close();
+            }
+            else
+            {
+                // the documents are in seperated files
+
+                for (int i = 0; i < hrequirements.Length; i++)
+                {
+                    Document d = new Document();
+                    d.Type = DocumentType.High;
+                    d.ID = Path.GetFileName(hrequirements[i]);
+                    d.Description = File.ReadAllText(hrequirements[i]);
+                    d.Status = "Not Satisfied";
+                    d.DocType = "Text";
+                    doc.HighLevelRequirements.Add(d);
+                }
+            }
+            //end of modified by Wenbin
+
+            doc.LowLevelRequirements.Clear();
+            if (ProjectFileName != null && ProjectFileName.Length > 0)
+            {
+                String altLowPath = Path.GetDirectoryName(ProjectFileName) + "\\Low";
+                if (!Directory.Exists(LowDocFileName) && Directory.Exists(altLowPath)) { LowDocFileName = altLowPath; }
+            }
+            //start of modified by Wenbin, read low level requirements from csv file
+
+            String[] lrequirements = Directory.GetFiles(LowDocFileName);
+
+            //files in a csv file
+            if (lrequirements.Length > 0 && lrequirements[0].EndsWith(".csv") == true)
+            {
+                StreamReader readFile = new StreamReader(lrequirements[0]);
+
+                string line;
+
+                //the first line should be A-Spec_ID and A-Spec_Rqt, as in the example. 
+                readFile.ReadLine();
+
+                while ((line = readFile.ReadLine()) != null)
+                {
+                    int split = line.IndexOf(',');
+                    string id = line.Substring(0, split);
+                    int length = line.Length - split - 1;
+                    string content = line.Substring(split + 1, length);
+                    content = content.Replace("\"\"", "\"");
+
+                    if (content.StartsWith("\"") == true)
+                    {
+                        int end = content.Length - 1;
+                        while (content[end] != '"' || content[end] == '"' && content[end - 1] != '"')
+                        {
+                            string next_line = readFile.ReadLine();
+                            next_line = next_line.Replace("\"\"", "\"");
+                            content = content + "\n";
+                            content = content + next_line;
+                            end = content.Length - 1;
+                        }
+                    }
+
+                    if (content.StartsWith("\"") == true)
+                    {
+                        content = content.Substring(1, content.Length - 1);
+                        content = content.Remove(content.Length - 1);
+                    }
+
+                    Document d = new Document();
+                    d.Type = DocumentType.Low;
+                    d.ID = id;
+                    d.Description = content;
+                    d.Status = "Not Satisfied";
+                    d.DocType = "Text";
+                    doc.LowLevelRequirements.Add(d);
+                }
+                readFile.Close();
+            }
+            //end of modified by Wenbin
+            else
+            {
+                String exePath = System.AppDomain.CurrentDomain.BaseDirectory + @"exes";
+
+                for (int i = 0; i < lrequirements.Length; i++)
+                {
+                    if (lrequirements[i].EndsWith(".java"))
+                    {
+
+                        String tempFile = Path.GetTempFileName().Replace(".tmp", ".xml");
+
+                        //Pass files to src2srcml.exe
+                        Process procSRML = new Process();
+                        procSRML.EnableRaisingEvents = false;
+                        procSRML.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                        procSRML.StartInfo.WorkingDirectory = exePath;
+                        procSRML.StartInfo.FileName = "src2srcml.exe";
+                        procSRML.StartInfo.Arguments = "--encoding UTF-8 --language=Java \"" + lrequirements[i] + "\" \"" + tempFile + "\"";
+
+                        try
+                        {
+                            Debug.WriteLine("Working directory: " + procSRML.StartInfo.WorkingDirectory);
+                            Debug.WriteLine("Calling: " + procSRML.StartInfo.FileName + " " + procSRML.StartInfo.Arguments);
+                            procSRML.Start();
+
+                            //Pause to allow feed.exe to finish executing
+                            procSRML.WaitForExit();
+                            if (procSRML.ExitCode == 1)
+                            {
+                                System.Diagnostics.Debug.WriteLine("Error");
+                            }
+
+
+                            XmlDocument xDoc = new XmlDocument();
+                            XmlNamespaceManager nsManager = new XmlNamespaceManager(xDoc.NameTable);
+                            nsManager.AddNamespace("src", @"http://www.sdml.info/srcML/src");
+                            xDoc.Load(tempFile);
+
+                            XmlNodeList list = xDoc.SelectNodes("//src:unit/src:class/src:block/src:function | //src:unit/src:class/src:block/src:constructor", nsManager);
+                            foreach (XmlNode node in list)
+                            {
+                                String className = node.SelectSingleNode("./../../src:name", nsManager).InnerText;
+                                String methodName = node.SelectSingleNode("./src:name", nsManager).InnerText;
+
+                                StringBuilder methodCode = new StringBuilder();
+
+                                int currentIndex = 0;
+                                for (int j = 0; j < node.ParentNode.ChildNodes.Count; j++)
+                                {
+                                    if (node.ParentNode.ChildNodes[j] == node)
+                                    {
+                                        currentIndex = j;
+                                        break;
+                                    }
+                                }
+                                methodCode.Append(Environment.NewLine);
+                                methodCode.Append(node.InnerXml);
+
+                                if (node.ParentNode.ChildNodes[currentIndex - 1].Name.Equals("comment"))
+                                {
+                                    methodCode.Insert(0, node.ParentNode.ChildNodes[currentIndex - 1].InnerXml);
+                                }
+                                methodCode.Append(Environment.NewLine);
+                                methodCode.Append("/*");
+                                methodCode.Append(Environment.NewLine);
+                                foreach (XmlNode variable in node.SelectNodes(".//src:decl/src:name", nsManager))
+                                {
+                                    String varName = variable.InnerText;
+                                    String cleanVarName = System.Text.RegularExpressions.Regex.Replace(varName, "([a-z])([A-Z])", "$1 $2").Replace("_", " ");
+                                    if (!varName.Equals(cleanVarName))
+                                    {
+                                        methodCode.Append(cleanVarName);
+                                        methodCode.Append(Environment.NewLine);
+                                    }
+                                }
+                                methodCode.Append(System.Text.RegularExpressions.Regex.Replace(methodName, "([a-z])([A-Z])", "$1 $2").Replace("_", " "));
+                                methodCode.Append(Environment.NewLine);
+                                methodCode.Append("*/");
+                                methodCode.Append(Environment.NewLine);
+
+                                Document lowDoc = new Document();
+                                lowDoc.Type = DocumentType.Low;
+                                lowDoc.ID = className + "." + methodName;
+                                lowDoc.Description = StripXML(methodCode.ToString());
+                                lowDoc.DocType = "Java";
+                                if (doc.LowLevelRequirements.FindByID(lowDoc.ID) == null)
+                                {
+                                    doc.LowLevelRequirements.Add(lowDoc);
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            File.Delete(tempFile);
+                        }
+                    }
+                    else
+                    {
+                        Document lowDoc = new Document();
+                        lowDoc.Type = DocumentType.Low;
+                        lowDoc.ID = Path.GetFileName(lrequirements[i]);
+                        lowDoc.Description = File.ReadAllText(lrequirements[i]);
+                        lowDoc.DocType = "Text";
+                        doc.LowLevelRequirements.Add(lowDoc);
+                    }
+                }
+            }
+
+            LoadKeywords(doc);
+            LoadRTM(doc, RTMFileName, new ArrayList());
+        }
+
+        private static string StripXML(string source)
+        {
+            try
+            {
+                string result = source;
+
+                // Remove remaining tags like <a>, links, images,
+                // comments etc - anything that is enclosed inside < >
+                result = System.Text.RegularExpressions.Regex.Replace(result,
+                         @"<[^>]*>", " ",
+                         System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+                // Remove repeating spaces
+                result = System.Text.RegularExpressions.Regex.Replace(result,
+                                                                      @"( )+", " ");
+
+                result = result.Replace("&lt", "<").Replace("&gt", ">").Replace(" . ", ".").Replace(";", ";" + Environment.NewLine);
+
+                // Thats it.
+                return result;
+
+            }
+            catch
+            {
+                return source;
+            }
+        }
+
+        //LoadProjectFile will get the project file information from
+        //external file
+        protected void LoadProjectFile(RetroDocument doc)
+        {
+            if (File.Exists(ProjectFileName))
+            {
+                // create reader & open project settings file
+                using (TextReader tr = new StreamReader(ProjectFileName))
+                {
+                    //Project options that the user selects when creating new project
+                    LowDocFileName = tr.ReadLine();
+                    HighDocFileName = tr.ReadLine();
+                    /* doc.IRMethod = */ tr.ReadLine();
+                    ThesaurusFileName = tr.ReadLine();
+                    /* doc.Iteration =  int.Parse(tr.ReadLine());*/
+                    tr.ReadLine();
+                    /* doc.CompleteFlag = Boolean.Parse(tr.ReadLine());*/
+                    tr.ReadLine();
+                    /*doc.IRMethodIndex = */ int.Parse(tr.ReadLine());
+                    /*doc.FileBase = (Basic.DocumentAnalyzerBasic.DocFileBase)(int.Parse(tr.ReadLine()));*/
+                    tr.ReadLine();
+                    if (Int16.Parse(tr.ReadLine()) == (int)RetroDocument.DocMode.Assess)
+                    {
+                        doc.Mode = RetroDocument.DocMode.Assess;
+                    }
+                    else
+                    {
+                        doc.Mode = RetroDocument.DocMode.Trace;
+                    }
+                }
+            }
+        }
+
+        //LoadRTM will get the RTM information from external
+        //results.xml file and load this information into memory
+        protected void LoadRTM(RetroDocument doc, String rtmFileName, ArrayList highLevelIDs)
+        {
+            //RTM file (if it exists)
+            if (File.Exists(rtmFileName))
+            {
+                using (XmlTextReader reader = new XmlTextReader(rtmFileName))
+                {
+                    List<CandidateLink> list = new List<CandidateLink>();
+
+                    String highLevelID = String.Empty;
+
+                    //Read the results.xml
+                    while (reader.Read())
+                    {
+                        //Go through all the high-level requirements nodes
+                        if (reader.NodeType == XmlNodeType.Element)
+                        {
+                            if (reader.Name.Equals("high"))
+                            {
+                                highLevelID = reader["id"];
+                                doc.HighLevelRequirements.FindByID(highLevelID).Status = reader["freeze"];
+                            }
+                            else if (reader.Name.Equals("low"))
+                            {
+                                CandidateLink link = new CandidateLink();
+                                link.HighLevelDoc = doc.HighLevelRequirements.FindByID(highLevelID);
+                                link.LowLevelDoc = doc.LowLevelRequirements.FindByID(reader["id"]);
+                                link.HighLevelDoc.CandidateLinks.Add(link);
+                                list.Add(link);
+                            }
+                            else if (reader.Name.Equals("weight"))
+                            {
+
+                                CandidateLink link = list[list.Count - 1];
+                                link.LinkStatus = reader["change"];
+                            }
+                        }
+                        else if (reader.NodeType == XmlNodeType.Text)
+                        {
+                            CandidateLink link = list[list.Count - 1];
+                            link.Weight = Double.Parse(reader.Value);
+                        }
+                    }
+
+                    /*
+                    //If doing a selected load, remove all rows that are not part of the selected load
+                    if (highLevelIDs != null && highLevelIDs.Count > 0)
+                    {
+                        for (int i = list.Count - 1; i >= 0; i--)
+                        {
+                            if (!highLevelIDs.Contains(list[i].HighLevelDoc.ID))
+                            {
+                                list.RemoveAt(i);
+                            }
+                        }
+                    }
+
+                    //Remove rows with default status, and update rows with non default status
+                    for (int j = doc.LinkedRequirements.Count - 1; j >= 0; j--)
+                    {
+                        CandidateLink linkRow = doc.LinkedRequirements[j];
+
+                        if (highLevelIDs != null && highLevelIDs.Count > 0 && !highLevelIDs.Contains(linkRow.HighLevelDoc.ID)) continue;
+
+                        if (linkRow.LinkStatus.Equals("Default"))
+                        {
+                            doc.LinkedRequirements.RemoveAt(j);
+                        }
+                        else
+                        {
+                            linkRow.Weight = 0.0;
+                            for (int k = 0; k < list.Count; k++)
+                            {
+                                CandidateLink dr = list[k];
+                                if (linkRow.HighLevelDoc.ID.Equals(dr.HighLevelDoc.ID) && linkRow.LowLevelDoc.ID.Equals(dr.LowLevelDoc.ID))
+                                {
+                                    linkRow.Weight = dr.Weight;
+                                    list.RemoveAt(k);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    //Add the remaining new rows to the data table
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        doc.LinkedRequirements.Add(list[i]);
+                    }
+                    */
+                    list.Clear();
+                }
+            }
+        }
+
+        protected void LoadDocumentModel(RetroDocument doc, String vocabularyFilename, String docindexFileName, String docmodelFilename, String querynameFilename, String querymodelFilename)
+        {
+            /*
+            //Clear any previously loaded data
+            doc.Vocabulary.Clear();
+            foreach (Document d in doc.LowLevelRequirements)
+            {
+                d.Keywords = null;
+            }
+            foreach (Document d in doc.HighLevelRequirements)
+            {
+                d.Keywords = null;
+            }
+
+            //Read the vocabulary file in                
+            using (StreamReader vocabularyFile = new StreamReader(File.OpenRead(vocabularyFilename)))
+            {
+                while (!vocabularyFile.EndOfStream)
+                {
+                    String[] modelTokens = vocabularyFile.ReadLine().Split(space, StringSplitOptions.None);
+                    Term word = new Term();
+                    word.Text = modelTokens[0];
+                    int indexNumber = int.Parse(modelTokens[1]);
+                    word.Frequency = int.Parse(modelTokens[2]);
+                    word.Position = int.Parse(modelTokens[3]);
+                    word.DocNumber = int.Parse(modelTokens[4]);
+                    word.Thesaurus = (modelTokens[5] == "1") ? true : false;
+                    word.PassThreshold = int.Parse(modelTokens[6]);
+                    word.CoTermCount = int.Parse(modelTokens[7]);
+                    word.ChiSquare = int.Parse(modelTokens[8]);
+
+                    if (!((IDictionary<String, Term>)doc.Vocabulary).Keys.Contains(word.Text))
+                    {
+                        doc.Vocabulary.Add(word.Text, word);
+                    }
+                }
+            }
+
+            String[] vocabularyKeys = new String[doc.Vocabulary.Keys.Count];
+            doc.Vocabulary.Keys.CopyTo(vocabularyKeys, 0);
+
+            //Read the docindex file in
+            SortedList<int, String> lowdocindex = new SortedList<int, String>();
+            byte[] lineBuffer = new byte[101];
+            using (FileStream indexFile = File.OpenRead(docindexFileName))
+            {
+                for (int index = 0; indexFile.Read(lineBuffer, 0, lineBuffer.Length) != 0; index++)
+                {
+                    if (lineBuffer[0] == '\0') continue;
+                    String s1 = utility.GetString(lineBuffer);
+                    if (s1.IndexOf('\0') > 0)
+                    {
+                        s1 = s1.Substring(0, s1.IndexOf('\0'));
+                    }
+                    lowdocindex.Add(index, s1);
+                }
+            }
+
+            //Read the document model file in
+            using (StreamReader docmodelFile = new StreamReader(File.OpenRead((docmodelFilename))))
+            {
+                while (!docmodelFile.EndOfStream)
+                {
+                    //read the whole line.  The first token is the index number into the lowdocindex
+                    String[] modelTokens = docmodelFile.ReadLine().Split(space, StringSplitOptions.RemoveEmptyEntries);
+                    int currentDoc = int.Parse(modelTokens[0]);
+
+                    //Get the keyword list for the specified document
+                    String docFile = lowdocindex[currentDoc];
+                    String lowLevelID = Path.GetFileName(lowdocindex[currentDoc]);
+                    Document lowDoc = doc.LowLevelRequirements.FindByID(lowLevelID);
+                    if (lowDoc.Keywords == null)
+                    {
+                        lowDoc.Keywords = new DocumentTermCollection();
+                    }
+
+                    //process the list of document terms
+                    for (int i = 1; i + 4 < modelTokens.Length; i += 5)
+                    {
+                        DocumentTerm dTerm = new DocumentTerm();
+                        int vocabularyIndex = int.Parse(modelTokens[i]);
+                        dTerm.Term = doc.Vocabulary[vocabularyKeys[vocabularyIndex]];
+                        dTerm.Frequency = int.Parse(modelTokens[i + 1]);
+                        dTerm.Weight = float.Parse(modelTokens[i + 2]);
+                        dTerm.WeightModifier = float.Parse(modelTokens[i + 3]);
+                        dTerm.Thesaurus = (modelTokens[i + 4] == "1") ? true : false;
+                        lowDoc.Keywords.Add(dTerm);
+                    }
+                }
+            }
+
+            //Read in the mapping from the vocabulary file to the high level requirements
+            using (StreamReader querymodelFile = new StreamReader(File.OpenRead((querymodelFilename))))
+            {
+                using (StreamReader querynameFile = new StreamReader(File.OpenRead((querynameFilename))))
+                {
+                    while (!querynameFile.EndOfStream && !querymodelFile.EndOfStream)
+                    {
+                        DocumentTermCollection querykeywords = new DocumentTermCollection();
+                        String[] modelTokens = querymodelFile.ReadLine().Split(space, StringSplitOptions.RemoveEmptyEntries);
+                        for (int i = 1; i + 4 < modelTokens.Length; i += 5)
+                        {
+                            DocumentTerm dTerm = new DocumentTerm();
+                            int vocabularyIndex = int.Parse(modelTokens[i]);
+                            dTerm.Term = doc.Vocabulary[vocabularyKeys[vocabularyIndex]];
+                            dTerm.Frequency = int.Parse(modelTokens[i + 1]);
+                            dTerm.Weight = float.Parse(modelTokens[i + 2]);
+                            dTerm.WeightModifier = float.Parse(modelTokens[i + 3]);
+                            dTerm.Thesaurus = (modelTokens[i + 4] == "1") ? true : false;
+                            querykeywords.Add(dTerm);
+                        }
+                        String highLevelID = Path.GetFileName(querynameFile.ReadLine());
+                        doc.HighLevelRequirements.FindByID(highLevelID).Keywords = querykeywords;
+                    }
+                }
+            }
+            */
+        }
+
+        protected void LoadKeywords(RetroDocument doc)
+        {
+            if (ProjectFileName.Length > 0)
+            {
+                String vocabularyFilename = Path.GetDirectoryName(ProjectFileName) + "\\docs\\vocabulary";
+                String docindexFileName = Path.GetDirectoryName(ProjectFileName) + "\\docs\\docindex";
+                String docmodelFilename = Path.GetDirectoryName(ProjectFileName) + "\\docs\\model";
+                String querymodelFilename = Path.GetDirectoryName(ProjectFileName) + "\\queryvectors\\vector.001";
+                String querynameFilename = Path.GetDirectoryName(ProjectFileName) + "\\queryname.txt";
+
+                if (File.Exists(vocabularyFilename) && File.Exists(docindexFileName) && File.Exists(docmodelFilename) && File.Exists(querynameFilename) && File.Exists(querymodelFilename))
+                {
+                    LoadDocumentModel(doc, vocabularyFilename, docindexFileName, docmodelFilename, querynameFilename, querymodelFilename);
+                }
+            }
+        }
+
+        //Save will save the retro project
+        public void saveDocument(RetroDocument doc)
+        {
+            if (ProjectFileName.Length > 0) doc.Name = Path.GetFileName(Path.GetDirectoryName(this.ProjectFileName));
+            try
+            {
+                String path = Path.GetDirectoryName(ProjectFileName);
+
+                    //Copy low level requirements to project folder
+                    String lowDocPath = path + "\\low";
+                    if (!Directory.Exists(lowDocPath))
+                    {
+                        Directory.CreateDirectory(lowDocPath);
+                        foreach (Document lowDoc in doc.LowLevelRequirements)
+                        {
+                            using (StreamWriter lowWriter = File.CreateText(lowDocPath + "\\" + lowDoc.ID))
+                            {
+                                lowWriter.Write(lowDoc.Description);
+                            }
+                        }
+                        LowDocFileName = lowDocPath;
+                    }
+
+                    //Copy high level requirements to project folder
+                    String highDocPath = path + "\\high";
+                    if (!Directory.Exists(highDocPath))
+                    {
+                        Directory.CreateDirectory(highDocPath);
+                        foreach (Document highDoc in doc.HighLevelRequirements)
+                        {
+                            using (StreamWriter highWriter = File.CreateText(highDocPath + "\\" + highDoc.ID))
+                            {
+                                highWriter.Write(highDoc.Description);
+                            }
+                        }
+                        HighDocFileName = highDocPath;
+                    }
+
+                    //Writes path.txt file...
+                    using (StreamWriter projWriter = new StreamWriter(ProjectFileName, false))
+                    {
+                        projWriter.WriteLine(LowDocFileName);
+                        projWriter.WriteLine(HighDocFileName);
+                        projWriter.WriteLine(doc.RankingMethod.getPluginID());
+                        projWriter.WriteLine((ThesaurusFileName != null || ThesaurusFileName.Trim().Length <= 0) ? "none" : ThesaurusFileName);
+                        projWriter.WriteLine("0");
+                        projWriter.WriteLine("false");
+                        projWriter.WriteLine(doc.RankingMethod.getPluginID());
+                        projWriter.WriteLine("0");// ((int)doc.FileBase);
+                        projWriter.WriteLine((int)doc.Mode);
+                    }
+
+                    //Make sure that no other process has a handle to the rtm file
+                    while (File.Exists(RTMFileName))
+                    {
+                        try
+                        {
+                            File.Delete(RTMFileName);
+                        }
+                        catch (IOException)
+                        {
+                            System.Threading.Thread.Sleep(25);
+                        }
+                    }
+
+                    //Create the RTM file
+
+
+                    using (StreamWriter rtmWriter = new StreamWriter(File.Create(RTMFileName), Encoding.ASCII, 2 * 1024 * 1024))
+                    {
+                        //call a function to write to the results.xml
+                        WriteRequirementsXMLTo(doc.HighLevelRequirements,rtmWriter);
+                    }
+
+                    //if no DTD file exists, write it
+                    if (!File.Exists(path + "\\masterDTD.dtd"))
+                    {
+                        using (StreamWriter dtdWriter = new StreamWriter(path + "\\masterDTD.dtd", false))
+                        {
+                            dtdWriter.WriteLine("<!ELEMENT req (high*)>");
+                            dtdWriter.WriteLine("");
+                            dtdWriter.WriteLine("<!ELEMENT high (low*)>");
+                            dtdWriter.WriteLine("<!ATTLIST high id ");
+                            dtdWriter.WriteLine("     ID #REQUIRED freeze ID #IMPLIED>");
+                            dtdWriter.WriteLine("<!ELEMENT low (weight*)>");
+                            dtdWriter.WriteLine("<!ATTLIST low id ID #REQUIRED>");
+                            dtdWriter.WriteLine("<!ELEMENT weight (#PCDATA)>");
+                            dtdWriter.WriteLine("<!ATTLIST weight change CDATA #IMPLIED>");
+                        }
+                    }
+                        //Make sure the required directories exist
+                        if (!Directory.Exists(path + "\\batchfiles"))
+                        {
+                            Directory.CreateDirectory(path + "\\batchfiles");
+                        }
+                        if (!Directory.Exists(path + "\\docs"))
+                        {
+                            Directory.CreateDirectory(path + "\\docs");
+                        }
+                        if (!Directory.Exists(path + "\\queryvectors"))
+                        {
+                            Directory.CreateDirectory(path + "\\queryvectors");
+                        }
+                        /*
+
+                            //Write vocabulary file
+                            String vocabularyFilename = Path.GetDirectoryName(ProjectFileName) + "\\docs\\vocabulary";
+                            using (StreamWriter vocabularyFile = File.CreateText(vocabularyFilename))
+                            {
+                                int count = 0;
+                                foreach (Term term in doc.Vocabulary.Values)
+                                {
+                                    vocabularyFile.WriteLine("{0} {1:D} {2:D} {3:D} {4:D} {5:D} {6:D} {7:D} {8:D}", term.Text, count++, term.Frequency, term.Position, term.DocNumber, term.Thesaurus ? 1 : 0, term.PassThreshold, term.CoTermCount, term.ChiSquare);
+                                }
+                            }
+
+                            //Calculate the old hash values for the docindex
+                            SortedList<int, String> lowdocindex = new SortedList<int, String>();
+                            foreach (String file in Directory.GetFiles(doc.LowDocFileName))
+                            {
+                                lowdocindex[hash(file)] = file;
+                            }
+
+                            //Write the docindex file out
+                            String docindexFileName = Path.GetDirectoryName(ProjectFileName) + "\\docs\\docindex";
+                            using (FileStream indexFile = File.Create(docindexFileName))
+                            {
+                                for (int index = 0; index < 30011; index++)
+                                {
+                                    int start = 0;
+                                    if (lowdocindex.ContainsKey(index))
+                                    {
+                                        byte[] outputBuffer = utility.GetBytes(lowdocindex[index]);
+                                        for (int j = 0; j < outputBuffer.Length; j++)
+                                        {
+                                            indexFile.WriteByte(outputBuffer[j]);
+                                        }
+                                        start = outputBuffer.Length;
+                                    }
+                                    for (int j = start; j < 101; j++)
+                                    {
+                                        indexFile.WriteByte(0);
+                                    }
+                                }
+                            }
+
+                            //Write the docfiles.txt file
+                            using (StreamWriter docfilesFile = File.CreateText(Path.GetDirectoryName(vocabularyFilename) + "\\docfiles.txt"))
+                            {
+                                foreach (String file in lowdocindex.Values)
+                                {
+                                    docfilesFile.WriteLine(file);
+                                }
+                            }
+
+                            //Write the doc_matrix_count.txt file
+                            using (StreamWriter docMatrixCountFile = File.CreateText(Path.GetDirectoryName(vocabularyFilename) + "\\doc_matrix_count.txt"))
+                            {
+                                docMatrixCountFile.WriteLine("{0} {1}", (doc.LowLevelRequirements.Count + doc.HighLevelRequirements.Count), doc.Vocabulary.Count);
+                            }
+
+                            //Convert the vocabulary terms to an array for easy lookup and index calculation
+                            List<Term> terms = new List<Term>();
+                            terms.AddRange(doc.Vocabulary.Values);
+
+                            //Write the model file
+                            String docmodelFilename = Path.GetDirectoryName(ProjectFileName) + "\\docs\\model";
+                            using (StreamWriter docModelFile = File.CreateText(docmodelFilename))
+                            {
+                                foreach (int index in lowdocindex.Keys)
+                                {
+                                    docModelFile.Write("{0} ", index);
+                                    DocumentTermCollection keywords = doc.LowLevelRequirements.FindByID(Path.GetFileName(lowdocindex[index])).Keywords;
+                                    if(keywords != null) foreach (DocumentTerm e in keywords)
+                                    {
+                                        if (e.Weight <= 0D || Double.IsNaN(e.WeightModifier)) continue;
+                                        int vocabularyIndex = terms.IndexOf(e.Term);
+                                        docModelFile.Write("{0} {1} {2} {3} {4} ", vocabularyIndex, e.Frequency, e.Weight, e.WeightModifier, e.Thesaurus ? 1 : 0);
+                                    }
+                                    docModelFile.Write(Environment.NewLine);
+                                }
+                            }
+
+                            //Write the query files
+                            String querymodelFilename = Path.GetDirectoryName(ProjectFileName) + "\\queryvectors\\vector.001";
+                            String querynameFilename = Path.GetDirectoryName(ProjectFileName) + "\\queryname.txt";
+                            using (StreamWriter querymodelFile = File.CreateText(querymodelFilename))
+                            {
+                                using (StreamWriter querynameFile = File.CreateText((querynameFilename)))
+                                {
+                                    foreach (Document highDoc in doc.HighLevelRequirements)
+                                    {
+                                        querynameFile.WriteLine(doc.HighDocFileName + "\\" + highDoc.ID);
+                                        querymodelFile.Write(" 1 ");
+                                        if (highDoc.Keywords != null)
+                                        {
+                                            DocumentTermCollection keywords = highDoc.Keywords;
+                                            foreach (DocumentTerm e in keywords)
+                                                {
+                                                    if (e.Weight <= 0D || Double.IsNaN(e.WeightModifier)) continue;
+                                                    int vocabularyIndex = terms.IndexOf(e.Term);
+                                                    querymodelFile.Write("{0} {1} {2} {3} {4} ", vocabularyIndex, e.Frequency, e.Weight, e.WeightModifier, e.Thesaurus ? 1 : 0);
+                                                }
+                                        }
+                                        querymodelFile.Write(Environment.NewLine);
+                                    }
+                                }
+                            }
+
+                            //Write the query_matrix_count.txt file
+                            using (StreamWriter queryMatrixCountFile = File.CreateText(Path.GetDirectoryName(querymodelFilename) + "\\query_matrix_count.txt"))
+                            {
+                                queryMatrixCountFile.WriteLine("{0} {1}", (doc.HighLevelRequirements.Count), 0);
+                            }
+                        */
+            }
+            finally
+            {
+                System.GC.Collect();
+            }
+        }
+
+        public void reloadDocument(RetroDocument doc, ArrayList highLevelIDs)
+        {
+            //Load the results into the datatable
+            LoadProjectFile(doc);
+
+            LoadRTM(doc, RTMFileName, highLevelIDs);
+
+            LoadKeywords(doc);
+
+            saveDocument(doc);
+        }
+
+        #endregion
+
+        #region IPlugin Members
+
+        public int getPluginID()
+        {
+            return 0;
+        }
+
+        public string getPluginName()
+        {
+            return "Classic Retro File Format";
+        }
+
+        #endregion
+
+        protected static char[] space = new char[] { ' ' };
+        protected static System.Text.ASCIIEncoding utility = new System.Text.ASCIIEncoding();
+
+        protected static int hash(String s)
+        {
+            int h = 0;
+            foreach (char p in s.ToCharArray())
+            {
+                h = (h * 128 + (int)p) % 30011;
+            }
+            return h;
+        }
+
+        public override string ToString()
+        {
+            return GetType().Name + "(HighDoc=" + this.HighDocFileName + ", LowDoc=" + this.LowDocFileName + ")";
+        }
+    }
+}

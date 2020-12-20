@@ -1,0 +1,49 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+using org.traceabilitycenter.RetroToolkit.Data;
+
+namespace org.traceabilitycenter.RetroToolkit.Basic
+{
+    public class ResultFilterTopQuartileRank : IResultFilter
+    {
+        #region IResultFilter Members
+
+        public void applyFilter(RetroDocument doc, System.Collections.ArrayList highLevelIDs)
+        {
+
+            List<double> allWeights = new List<double>();
+            foreach (RetroData.LinkedRequirementsRow linkRow in doc.LinkedRequirements)
+            {
+                allWeights.Add(linkRow.Weight);
+            }
+            allWeights.Sort();
+            double cutoffWeight = allWeights[(int)((double)allWeights.Count * 0.75)];
+
+            for(int i = doc.LinkedRequirements.Count - 1; i >= 0; i--)  {
+                RetroData.LinkedRequirementsRow linkRow = (RetroData.LinkedRequirementsRow)doc.LinkedRequirements[i];
+                if (linkRow.Weight < cutoffWeight && linkRow.LinkStatus == "Default")
+                {
+                    linkRow.Delete();
+                }
+            }            
+        }
+
+        #endregion
+
+        #region IPlugin Members
+
+        public int getPluginID()
+        {
+            return 1;
+        }
+
+        public string getPluginName()
+        {
+            return "Top Quartile Filter";
+        }
+
+        #endregion
+    }
+}

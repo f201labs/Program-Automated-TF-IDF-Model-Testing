@@ -1,0 +1,1 @@
+While in ASSESS mode, the user will need a mechanism that will allow the deletion of recommended links that the user feels are not correctly linked. RETRO shall permit the user to select a recommended link and delete it.

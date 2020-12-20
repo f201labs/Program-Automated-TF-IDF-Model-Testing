@@ -1,0 +1,165 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
+using System.Data;
+using System.Text;
+using System.Windows.Forms;
+
+namespace org.traceabilitycenter.Retro.UI
+{
+
+    /// <summary>
+    /// Provides a control which filters a DataGridView by either a numerical column value or the top N high values elements in the column.
+    /// </summary>
+    public partial class FilterDataGridView : UserControl
+    {
+        public FilterDataGridView()
+        {
+            InitializeComponent();
+        }
+
+        /// <summary>
+        /// The DataGridView that this control applies its filter on
+        /// </summary>
+        protected DataGridView _dg = null;
+        public DataGridView TargetDataGrid
+        {
+            get
+            {
+                return _dg;
+            }
+            set
+            {
+                _dg = value;
+            }
+        }
+
+        /// <summary>
+        /// Applies the filter by either the top N elements or a cutoff value
+        /// </summary>
+        public void ApplyFilter()
+        {
+            if (this.rbFilterTopN.Checked)
+            {
+                DataTable dt = this.TargetDataGrid.DataSource as DataTable;
+
+                int size = 0;
+                try
+                {
+                    size = Int16.Parse(tbFilterTopN.Text);
+                }
+                catch
+                {
+                    size = dt.Rows.Count - 1;
+                }
+
+                if (size >= dt.Rows.Count) { size = dt.Rows.Count - 1; }
+
+                DataView dvCopy = new DataView(dt);
+                
+                int colLoc = dt.DefaultView.RowFilter.IndexOf(" AND " + FilterColumnName);
+                string prevFilter = (colLoc < 0) ? dt.DefaultView.RowFilter : dt.DefaultView.RowFilter.Substring(0, colLoc);
+
+                dvCopy.RowFilter = prevFilter;
+                dvCopy.Sort = FilterColumnName + " DESC";
+                float filterVal = (size >= dvCopy.Count) ? 0F : (float)dvCopy[size].Row[FilterColumnName];
+                if(filterVal > 0) {
+                    if (prevFilter.Length > 0) { prevFilter += " AND "; }
+                    prevFilter += FilterColumnName + " > " + filterVal.ToString();
+                }
+                if (prevFilter != dt.DefaultView.RowFilter)
+                {
+                    dt.DefaultView.RowFilter = prevFilter;
+                }
+            }
+            else if (this.TargetDataGrid.DataSource is DataTable)
+            {
+                float filterVal = tbarFilter.Value;
+                DataTable dt = this.TargetDataGrid.DataSource as DataTable;
+                int colLoc = dt.DefaultView.RowFilter.IndexOf(" AND " + FilterColumnName);
+                string prevFilter = (colLoc < 0) ? dt.DefaultView.RowFilter : dt.DefaultView.RowFilter.Substring(0, colLoc);
+                if(filterVal > 0) {
+                    if (prevFilter.Length > 0) { prevFilter += " AND "; }
+                    prevFilter += FilterColumnName + " > " + (filterVal / 100F);
+                    
+                }
+                if (prevFilter != dt.DefaultView.RowFilter)
+                {
+                    dt.DefaultView.RowFilter = prevFilter;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Column Name to filter on
+        /// </summary>
+        protected String _filterColumnName;
+        public String FilterColumnName
+        {
+            get
+            {
+                return _filterColumnName;
+            }
+            set
+            {
+                _filterColumnName = value;
+            }
+        }
+
+        private void rbFilter_CheckedChanged(object sender, EventArgs e)
+        {
+            this.tbFilterTopN.Enabled = (sender == this.rbFilterTopN);
+            this.tbarFilter.Enabled = (sender == this.rbFilterValue);
+            this.tbFilterValue.Enabled = (sender == this.rbFilterValue);
+            this.ApplyFilter();
+        }
+
+        private void tbarFilter_Scroll(object sender, EventArgs e)
+        {
+            this.tbFilterValue.Text = this.tbarFilter.Value.ToString();
+            this.ApplyFilter();
+        }
+
+        private void tbFilterValue_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Int16 filterValue = 0;
+                if (tbFilterValue.Text != "") filterValue = Int16.Parse(tbFilterValue.Text);
+                if (filterValue > 100) filterValue = 100;
+                this.tbarFilter.Value = filterValue;
+            }
+            catch
+            {
+                tbFilterValue.Text = tbarFilter.Value.ToString();
+            }
+            ApplyFilter();
+        }
+
+        private void tbFilterTopN_TextChanged(object sender, EventArgs e)
+        {
+            ApplyFilter();
+        }
+    }
+}

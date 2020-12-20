@@ -1,0 +1,104 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Data;
+using System.Collections.Generic;
+using System.Text;
+using org.traceabilitycenter.RetroToolkit.Data;
+using org.traceabilitycenter.RetroToolkit.Basic.Data;
+
+namespace org.traceabilitycenter.RetroToolkit.Basic.ResultFilters
+{
+    public class ResultFilterDeltaChopperHigh : IResultFilter
+    {
+        #region IResultFilter Members
+
+        public double Alpha = Double.NaN;
+
+        public ResultFilterDeltaChopperHigh() { }
+        public ResultFilterDeltaChopperHigh(double alpha) { Alpha = alpha; }
+
+        public void applyResultFilter(IDocumentCollection highDocs, IDocumentCollection lowDocs)
+        {
+            double cutDelta, relativeDelta;
+            int cutoffIndex;
+            foreach (Document highReq in highDocs)
+            {
+                //Get a list of candidate links with default status for the given high level requirement
+                //The list is ordered from highest similarity to lowest similarity
+                ICandidateLinkCollection dv = highReq.CandidateLinks.FindByStatus(null, true);
+
+                //If the list is empty, skip to next high level requirement
+                if (dv.Count <= 0) continue;
+
+                //If Alpha = Nan (Not a Number), then we are searching for the max delta
+                //otherwise we use the specified alpha
+                cutDelta = Double.IsNaN(Alpha) ? 0.0 : Alpha;
+
+                cutoffIndex = dv.Count;
+
+                //foreach candidate link
+                for (int i = 0; i < dv.Count-1; i++)
+                {
+                    //calculate the relative delta
+                    relativeDelta = ((dv[i].Weight - dv[i + 1].Weight) / dv[i + 1].Weight);
+
+                    if (relativeDelta > cutDelta)
+                    {
+                        cutDelta = relativeDelta;
+                        cutoffIndex = i;
+
+                        //if this isn't a max delta search break,
+                        //otherwise process the whole candidate link list
+                        if (!Double.IsNaN(Alpha)) { break; }
+                    }
+                }
+
+                //delete entries from the bottom of the list up to the cutoff index
+                for (int i = dv.Count - 1; i > cutoffIndex; i--)
+                {
+                    ICandidateLink linkRow = dv[i];
+                    //Only remove candidate links with a status of default
+                    if (linkRow.LinkStatus == "Default")
+                    {
+                        linkRow.Remove();
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region IPlugin Members
+
+        public int getPluginID()
+        {
+            return 0;
+        }
+
+        public string getPluginName()
+        {
+            return "Result Relative Delta Chopper (High Level) (Chop Point="+((Double.IsNaN(Alpha) ? "Max Delta" : Alpha.ToString()))+")";
+        }
+
+        #endregion
+    }
+}

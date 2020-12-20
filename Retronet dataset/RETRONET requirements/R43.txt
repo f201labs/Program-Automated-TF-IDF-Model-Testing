@@ -1,0 +1,1 @@
+“The user shall be able to limit the display of low-level requirements or candidate requirement links.” [1] The user shall be able to filter the list of low-level requirements by setting a cutoff point for the weight between 0 and 1.0.

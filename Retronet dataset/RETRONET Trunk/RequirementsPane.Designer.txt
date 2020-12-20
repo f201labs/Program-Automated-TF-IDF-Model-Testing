@@ -1,0 +1,240 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+namespace org.traceabilitycenter.Retro.UI
+{
+    partial class RequirementsPane
+    {
+        /// <summary> 
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary> 
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Component Designer generated code
+
+        /// <summary> 
+        /// Required method for Designer support - do not modify 
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.groupReqs = new System.Windows.Forms.GroupBox();
+            this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.dgReqs = new System.Windows.Forms.DataGridView();
+            this.tableLayoutPanel5 = new System.Windows.Forms.TableLayoutPanel();
+            this.tbReqs = new org.traceabilitycenter.Retro.UI.RequirementRichTextBox();
+            this.lblHighLevelReqsText = new System.Windows.Forms.Label();
+            this.tabFilters = new System.Windows.Forms.TabControl();
+            this.tabAll = new System.Windows.Forms.TabPage();
+            this.tabKeyword = new System.Windows.Forms.TabPage();
+            this.tbSearchbox = new System.Windows.Forms.TextBox();
+            this.cbAdvancedSearch = new System.Windows.Forms.CheckBox();
+            this.btnSearch = new System.Windows.Forms.Button();
+            
+            this.groupReqs.SuspendLayout();
+            this.splitContainer2.Panel1.SuspendLayout();
+            this.splitContainer2.Panel2.SuspendLayout();
+            this.splitContainer2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgReqs)).BeginInit();
+            this.tableLayoutPanel5.SuspendLayout();
+            this.tabFilters.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // groupReqs
+            // 
+            this.groupReqs.Controls.Add(this.splitContainer2);
+            this.groupReqs.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupReqs.Location = new System.Drawing.Point(3, 3);
+            this.groupReqs.Name = "groupReqs";
+            this.groupReqs.Size = new System.Drawing.Size(469, 369);
+            this.groupReqs.TabIndex = 2;
+            this.groupReqs.TabStop = false;
+            this.groupReqs.Text = "Document Elements";
+            // 
+            // splitContainer2
+            // 
+            this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer2.Location = new System.Drawing.Point(3, 16);
+            this.splitContainer2.Name = "splitContainer2";
+            this.splitContainer2.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer2.Panel1
+            // 
+            this.splitContainer2.Panel1.Controls.Add(this.dgReqs);
+            // 
+            // splitContainer2.Panel2
+            // 
+            this.splitContainer2.Panel2.Controls.Add(this.tableLayoutPanel5);
+            this.splitContainer2.Size = new System.Drawing.Size(463, 350);
+            this.splitContainer2.SplitterDistance = 168;
+            this.splitContainer2.TabIndex = 6;
+            // 
+            // dgReqs
+            // 
+            this.dgReqs.AllowUserToAddRows = false;
+            this.dgReqs.AllowUserToDeleteRows = false;
+            this.dgReqs.AllowUserToOrderColumns = true;
+            this.dgReqs.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgReqs.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgReqs.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgReqs.Location = new System.Drawing.Point(0, 0);
+            this.dgReqs.Name = "dgReqs";
+            this.dgReqs.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgReqs.Size = new System.Drawing.Size(463, 168);
+            this.dgReqs.TabIndex = 3;
+            // 
+            // tableLayoutPanel5
+            // 
+            this.tableLayoutPanel5.ColumnCount = 1;
+            this.tableLayoutPanel5.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel5.Controls.Add(this.tbReqs, 0, 1);
+            this.tableLayoutPanel5.Controls.Add(this.lblHighLevelReqsText, 0, 0);
+            this.tableLayoutPanel5.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanel5.Location = new System.Drawing.Point(0, 0);
+            this.tableLayoutPanel5.Name = "tableLayoutPanel5";
+            this.tableLayoutPanel5.RowCount = 2;
+            this.tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel5.Size = new System.Drawing.Size(463, 178);
+            this.tableLayoutPanel5.TabIndex = 0;
+            // 
+            // tbReqs
+            // 
+            this.tbReqs.BackColor = System.Drawing.Color.White;
+            this.tbReqs.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tbReqs.FontSize = 25;
+            this.tbReqs.Location = new System.Drawing.Point(3, 23);
+            this.tbReqs.Name = "tbReqs";
+            this.tbReqs.Size = new System.Drawing.Size(457, 152);
+            this.tbReqs.TabIndex = 3;
+            this.tbReqs.Text = "";
+            // 
+            // lblHighLevelReqsText
+            // 
+            this.lblHighLevelReqsText.AutoSize = true;
+            this.lblHighLevelReqsText.Location = new System.Drawing.Point(3, 0);
+            this.lblHighLevelReqsText.Name = "lblHighLevelReqsText";
+            this.lblHighLevelReqsText.Size = new System.Drawing.Size(91, 13);
+            this.lblHighLevelReqsText.TabIndex = 3;
+            this.lblHighLevelReqsText.Text = "Requirement Text";
+            // 
+            // tabFilters
+            // 
+            this.tabFilters.Alignment = System.Windows.Forms.TabAlignment.Bottom;
+            this.tabFilters.Controls.Add(this.tabAll);
+            this.tabFilters.Controls.Add(this.tabKeyword);
+            this.tabFilters.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabFilters.Location = new System.Drawing.Point(3, 378);
+            this.tabFilters.Multiline = true;
+            this.tabFilters.Name = "tabFilters";
+            this.tabFilters.SelectedIndex = 0;
+            this.tabFilters.Size = new System.Drawing.Size(469, 119);
+            this.tabFilters.TabIndex = 1;
+            // 
+            // tabAll
+            // 
+            this.tabAll.Location = new System.Drawing.Point(4, 4);
+            this.tabAll.Name = "tabAll";
+            this.tabAll.Padding = new System.Windows.Forms.Padding(3);
+            this.tabAll.Size = new System.Drawing.Size(461, 93);
+            this.tabAll.TabIndex = 0;
+            this.tabAll.Text = "All";
+            this.tabAll.UseVisualStyleBackColor = true;
+            // 
+            // tabKeyword
+            // 
+            this.tabKeyword.Location = new System.Drawing.Point(4, 4);
+            this.tabKeyword.Name = "tabKeyword";
+            this.tabKeyword.Padding = new System.Windows.Forms.Padding(3);
+            this.tabKeyword.Size = new System.Drawing.Size(461, 93);
+            this.tabKeyword.TabIndex = 1;
+            this.tabKeyword.Text = "By Keyword";
+            this.tabKeyword.UseVisualStyleBackColor = true;
+            this.tabKeyword.Controls.Add(this.tbSearchbox);
+            this.tabKeyword.Controls.Add(this.cbAdvancedSearch);
+            this.tabKeyword.Controls.Add(this.btnSearch);
+            //
+            // tbSearchbox
+            //
+            this.tbSearchbox.Dock = System.Windows.Forms.DockStyle.Top;
+            this.tbSearchbox.KeyDown += new System.Windows.Forms.KeyEventHandler(tbSearchbox_KeyDown);
+            //
+            // cbAdvancedSearch
+            //
+            this.cbAdvancedSearch.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.cbAdvancedSearch.Text = "Use Boolean Expressions";
+            // btnSearch
+            //
+            this.btnSearch.Click += new System.EventHandler(btnSearch_Click);
+            this.btnSearch.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.btnSearch.Text = "Search by Keyword";
+            // 
+            // RequirementsPane
+            // 
+            this.ColumnCount = 1;
+            this.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.Controls.Add(this.groupReqs, 0, 0);
+            this.Controls.Add(this.tabFilters, 0, 1);
+            this.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.RowCount = 2;
+            this.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 125F));
+            this.Size = new System.Drawing.Size(475, 500);
+            this.TabIndex = 3;
+            this.groupReqs.ResumeLayout(false);
+            this.splitContainer2.Panel1.ResumeLayout(false);
+            this.splitContainer2.Panel2.ResumeLayout(false);
+            this.splitContainer2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgReqs)).EndInit();
+            this.tableLayoutPanel5.ResumeLayout(false);
+            this.tableLayoutPanel5.PerformLayout();
+            this.tabFilters.ResumeLayout(false);
+            this.ResumeLayout(false);
+        }
+
+        #endregion
+
+        private RequirementRichTextBox tbReqs;
+        private System.Windows.Forms.GroupBox groupReqs;
+        private System.Windows.Forms.SplitContainer splitContainer2;
+        private System.Windows.Forms.DataGridView dgReqs;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel5;
+        private System.Windows.Forms.Label lblHighLevelReqsText;
+        protected System.Windows.Forms.TabControl tabFilters;
+        protected System.Windows.Forms.TabPage tabAll;
+        protected System.Windows.Forms.TabPage tabKeyword;
+        protected System.Windows.Forms.TextBox tbSearchbox;
+        protected System.Windows.Forms.CheckBox cbAdvancedSearch;
+        protected System.Windows.Forms.Button btnSearch;
+    }
+}

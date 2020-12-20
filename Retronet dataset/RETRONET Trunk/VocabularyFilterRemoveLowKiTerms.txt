@@ -1,0 +1,89 @@
+/*
+    Copyright © 2006, Jody Larsen
+    All rights reserved.
+    http://www.dreamfrog.com/
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+  THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+  INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+  OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+using org.traceabilitycenter.RetroToolkit.Data;
+
+namespace org.traceabilitycenter.RetroToolkit.Basic
+{
+    public class VocabularyFilterRemoveLowKiTerms : IVocabularyFilter
+    {
+        #region IVocabularyFilter Members
+
+        public VocabularyFilterRemoveLowKiTerms() { }
+        public VocabularyFilterRemoveLowKiTerms(double cutoff)
+        {
+            _cutoff = cutoff;
+        }
+
+        private double _cutoff = 0.00;
+        public double Cutoff
+        {
+            get { return _cutoff; }
+            set { _cutoff = value; }
+        }
+
+        public void applyVocabularyFilter(RetroDocument doc)
+        {
+            throw new Exception("Not implemented");
+            /*
+            doc.Vocabulary.ResetIDs();
+
+            DocumentCollection reqs = new DocumentCollection(doc.LowLevelRequirements);
+            reqs.AddRange(doc.LowLevelRequirements);
+
+            foreach (Document req in reqs)
+            {
+                int[,] coOccurance = new int[req.Keywords.Count, req.Keywords.Count];
+
+                for (int c = 0; c < req.Keywords.Count; c++)
+                {
+                    for (int r = 0; r < c; r++)
+                    {
+                        if (c == r || req.Keywords.FindByID(req.Keywords[c].Term.ID) == null || req.Keywords.FindByID(req.Keywords[r].Term.ID) == null) { coOccurance[c, r] = 0; }
+                        else
+                        {
+
+                        }
+                    }
+                }
+            }
+            */
+        }
+
+        #endregion
+
+        #region IPlugin Members
+
+        public int getPluginID()
+        {
+            return 1;
+        }
+
+        public string getPluginName()
+        {
+            return "Remove Common Vocabulary Terms (cutoff = " + Cutoff + ")";
+        }
+
+        #endregion
+    }
+}

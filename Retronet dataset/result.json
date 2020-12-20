@@ -1,0 +1,559 @@
+[
+    {
+        "dataTest": "R1.txt",
+        "dataSet":[
+            "ProjectSettingsDialog.Designer.txt",
+            "RetroApplication.txt",
+            "ProjectSettingsDialog.txt",
+            "RetroApplication.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R2.txt",
+        "dataSet":[
+            "SerializerClassicRetroFileFormat.txt",
+            "ProjectSettingsDialog.txt",
+            "ProjectSettingsDialog.Designer.txt"            
+        ]
+    },
+    {
+        "dataTest": "R3.txt",
+        "dataSet":["ProjectSettingsDialog.txt"]
+    },
+    {
+        "dataTest": "R4.txt",
+        "dataSet": ["ProjectSettingsDialog.txt"]
+    },
+    {
+        "dataTest": "R5.txt",
+        "dataSet":[
+            "DocFileBase.txt",
+            "ProjectSettingsDialog.txt"         
+        ]
+    },
+    {
+        "dataTest": "R6.txt",
+        "dataSet":["ProjectSettingsDialog.txt"]
+    },
+    {
+        "dataTest": "R7.txt",
+        "dataSet":[]
+    },
+    {
+        "dataTest": "R8.txt",
+        "dataSet":[]
+    },
+    {
+        "dataTest": "R9.txt",
+        "dataSet":[
+            "ProjectSettingsDialog.Designer.txt",
+            "ProjectSettingsDialog.txt",
+            "RetroToolkit.VectorSpace.txt"
+        ]
+    },
+    {
+        "dataTest": "R10.txt",
+        "dataSet":[
+            "ProjectSettingsDialog.txt",
+            "ProjectSettingsDialog.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R11.txt",
+        "dataSet":[
+            "RetroApplication.txt",
+            "ProjectSettingsDialog.txt"
+        ]
+    },
+    {
+        "dataTest": "R12.txt",
+        "dataSet":[
+            "RetroProjectForm.txt",
+            "ProjectSettingsDialog.Designer.txt",
+            "ProjectSettingsDialog.txt",
+            "RequirementsPane.txt",
+            "RequirementsPaneLow.Designer.txt",
+            "RequirementsPane.Designer.txt",
+            "RequirementsPaneLow.txt",
+            "RetroDocument.txt",
+            "RequirementsPaneHigh.Designer.txt",
+            "RequirementsPaneHigh.txt",
+            "RetroApplication.txt",
+            "RetroProjectForm.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R13.txt",
+        "dataSet":[
+            "RetroApplication.txt",
+            "RetroApplication.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R14.txt",
+        "dataSet":["RetroApplication.txt"]
+    },
+    {
+        "dataTest": "R15.txt",
+        "dataSet":[]
+    },
+    {
+        "dataTest": "R16.txt",
+        "dataSet":["RetroApplication.txt"]
+    },
+    {
+        "dataTest": "R17.txt",
+        "dataSet":["RetroApplication.txt"]
+    },
+    {
+        "dataTest": "R18.txt",
+        "dataSet":[
+            "SerializerClassicRetroFileFormat.txt",
+            "RetroApplication.txt",
+            "RetroApplication.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R19.txt",
+        "dataSet":["RetroApplication.txt"]
+    },
+    {
+        "dataTest": "R20.txt",
+        "dataSet":[
+            "SerializerClassicRetroFileFormat.txt",
+            "RetroApplication.txt",
+            "RetroApplication.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R21.txt",
+        "dataSet":["RetroApplication.txt"]
+    },
+    {
+        "dataTest": "R22.txt",
+        "dataSet":["RetroApplication.txt"]
+    },
+    {
+        "dataTest": "R23.txt",
+        "dataSet":[
+            "WeightCalculator_TF_IDF.txt",
+            "RetroApplication.txt",
+            "RetroApplication.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R24.txt",
+        "dataSet":[
+            "SerializerClassicRetroFileFormat.txt",
+            "RetroApplication.txt",
+            "RetroApplication.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R25.txt",
+        "dataSet":[
+            "SerializerClassicRetroFileFormat.txt",
+            "RetroApplication.txt",
+            "RetroApplication.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R26.txt",
+        "dataSet":[
+            "SerializerClassicRetroFileFormat.txt",
+            "RetroApplication.txt",
+            "RetroApplication.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R27.txt",
+        "dataSet":["RetroApplication.txt"]
+    },
+    {
+        "dataTest": "R28.txt",
+        "dataSet":["RetroApplication.txt"]
+    },
+    {
+        "dataTest": "R29.txt",
+        "dataSet":["RetroApplication.Designer.txt"]
+    },
+    {
+        "dataTest": "R30.txt",
+        "dataSet":[
+            "RetroDocument.txt",
+            "RetroApplication.txt",
+            "RetroProjectForm.txt",
+            "RequirementsPaneHigh.txt",
+            "RequirementsPane.txt",
+            "RequirementsPaneHigh.Designer.txt",
+            "RequirementsPaneLow.Designer.txt",
+            "RetroApplication.Designer.txt",
+            "RequirementsPane.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R31.txt",
+        "dataSet":[
+            "RetroProjectForm.txt",
+            "RetroApplication.txt",
+            "SerializerClassicRetroFileFormat.txt",
+            "IRetroDocumentSerializer.txt"
+        ]
+    },
+    {
+        "dataTest": "R32.txt",
+        "dataSet":["RetroProjectForm.txt"]
+    },
+    {
+        "dataTest": "R33.txt",
+        "dataSet":[
+            "Retro (1).txt",
+            "RetroApplication.txt",
+            "Retro (2).txt"
+        ]
+    },
+    {
+        "dataTest": "R34.txt",
+        "dataSet":[
+            "RetroProjectForm.txt",
+            "SerializerClassicRetroFileFormat.txt",
+            "RetroProjectForm.Designer.txt",
+            "ShowTextDialog.txt",
+            "ShowTextDialog.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R35.txt",
+        "dataSet":[
+            "ReportDialog.txt",
+            "ReportDialog.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R36.txt",
+        "dataSet":["ReportDialog.txt"]
+    },
+    {
+        "dataTest": "R37.txt",
+        "dataSet":["ReportDialog.txt"]
+    },
+    {
+        "dataTest": "R38.txt",
+        "dataSet":["ReportDialog.txt"]
+    },
+    {
+        "dataTest": "R39.txt",
+        "dataSet":["ReportDialog.txt"]
+    },
+    {
+        "dataTest": "R40.txt",
+        "dataSet":["ReportDialog.txt"]
+    },
+    {
+        "dataTest": "R41.txt",
+        "dataSet":["ReportDialog.txt"]
+    },
+    {
+        "dataTest": "R42.txt",
+        "dataSet":[]
+    },
+    {
+        "dataTest": "R43.txt",
+        "dataSet":[]
+    },
+    {
+        "dataTest": "R44.txt",
+        "dataSet":[]
+    },
+    {
+        "dataTest": "R45.txt",
+        "dataSet":[]
+    },
+    {
+        "dataTest": "R46.txt",
+        "dataSet":[
+            "RequirementsPaneHigh.txt",
+            "RequirementsPaneLow.txt",
+            "RequirementsPane.txt"
+        ]
+    },
+    {
+        "dataTest": "R47.txt",
+        "dataSet":[
+            "CandidateLinkCollection.txt",
+            "ICandidateLinkCollection.txt",
+            "RequirementsPaneLow.txt",
+            "ICandidateLink.txt",
+            "RequirementsPaneLow.Designer.txt",
+            "CandidateLink.txt"
+        ]
+    },
+    {
+        "dataTest": "R48.txt",
+        "dataSet":[
+            "RequirementsPaneLow.txt",
+            "RequirementsPane.txt"
+        ]
+    },
+    {
+        "dataTest": "R49.txt",
+        "dataSet":[
+            "RequirementsPaneLow.txt",
+            "RequirementsPaneHigh.txt",
+            "DataFactory.txt",
+            "RequirementsPaneLow.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R50.txt",
+        "dataSet":[
+            "RetroProjectForm.txt",
+            "RetroApplication.txt",
+            "RetroApplication.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R51.txt",
+        "dataSet":[]
+    },
+    {
+        "dataTest": "R52.txt",
+        "dataSet":[
+            "ShowTextDialog.txt",
+            "ReportDialog.Designer.txt",
+            "RetroApplication.Designer.txt",
+            "ShowTextDialog.Designer.txt",
+            "KeywordDialog.Designer.txt",
+            "RequirementsPaneLow.Designer.txt",
+            "RetroApplication.txt",
+            "RetroProjectForm.Designer.txt",
+            "RequirementsPane.Designer.txt",
+            "AboutBox.Designer.txt",
+            "ExceptionDialog.txt",
+            "RequirementsPaneHigh.Designer.txt",
+            "FilterDataGridView.Designer.txt",
+            "ProjectSettingsDialog.Designer.txt",
+            "AboutBox.txt",
+            "RequirementRichTextBox.txt",
+            "RequirementsPaneHigh.txt",
+            "RetroPrintDocument.txt",
+            "ProjectSettingsDialog.txt",
+            "FilterDataGridView.txt",
+            "KeywordDialog.txt",
+            "RequirementsPane.txt",
+            "RequirementsPaneLow.txt",
+            "RetroProjectForm.txt",
+            "ReportDialog.txt"
+        ]
+    },
+    {
+        "dataTest": "R53.txt",
+        "dataSet":[
+            "RequirementsPane.txt",
+            "RequirementRichTextBox.txt",
+            "RequirementsPaneLow.txt",
+            "RequirementsPane.Designer.txt",
+            "ICandidateLinkCollection.txt",
+            "IDocumentTermCollection.txt",
+            "ICandidateLink.txt",
+            "IDocumentCollection.txt",
+            "IDocument.txt",
+            "Document.txt",
+            "RequirementsPaneLow.Designer.txt",
+            "DocumentTerm.txt",
+            "DocumentCollection.txt",
+            "CandidateLinkCollection.txt",
+            "CandidateLink.txt",
+            "DocumentTermCollection.txt"
+        ]
+    },
+    {
+        "dataTest": "R54.txt",
+        "dataSet":[
+            "RequirementsPane.txt",
+            "RequirementRichTextBox.txt",
+            "RequirementsPaneHigh.txt",
+            "IDocumentTermCollection.txt",
+            "IDocumentCollection.txt",
+            "IDocument.txt",
+            "DocumentTerm.txt",
+            "IDocumentTerm.txt",
+            "RequirementsPaneHigh.Designer.txt",
+            "DocumentCollection.txt",
+            "DocumentTermCollection.txt"
+        ]
+    },
+    {
+        "dataTest": "R55.txt",
+        "dataSet":["CandidateLink.txt"]
+    },
+    {
+        "dataTest": "R56.txt",
+        "dataSet":[
+            "RetroProjectForm.txt",
+            "RetroProjectForm.Designer.txt",
+            "ICandidateLink.txt",
+            "ICandidateLinkCollection.txt",
+            "RetroDocument.txt",
+            "ResultFilterDeltaChopperLow.txt",
+            "ResultFilterDeltaChopperHigh.txt",
+            "IDocumentCollection.txt",
+            "ICandidateLinkFeedbackCalculator.txt",
+            "ICandidateLinkRankCalculator.txt",
+            "IDocument.txt",
+            "Term.txt",
+            "ResultFilterTop1NotYetExamined.txt",
+            "ResultFilterTopNRankLow.txt",
+            "ResultFilterTopNRankHigh.txt",
+            "ResultFilterRandomNLocal.txt",
+            "PorterStemmer.txt",
+            "ResultFilterRandomNGlobal.txt",
+            "ResultFilterTopNRankGlobal.txt",
+            "FeedbackCalculatorStandardRochio.txt",
+            "RankCalculatorBasic.txt",
+            "TermCollection.txt",
+            "ResultFilterTopPercentileGlobalRankHigh.txt",
+            "ResultFilterTopNRankBoth.txt",
+            "ResultFilterTopPercentileLocalRankHigh.txt",
+            "ResultFilterTopPercentileLocalRankLow.txt",
+            "WeightCalculator_Okapi.txt",
+            "WeightCalculator_LTU.txt",
+            "IVocabularyFilter.txt",
+            "ITermWeightCalculator.txt",
+            "IDocumentTermFilter.txt",
+            "ITerm.txt",
+            "WeightCalculator_TF_IDF.txt",
+            "ResultFilterTopQuartileRank.txt",
+            "RetroToolkit.NLP.txt",
+            "IDocumentLexicalAnalyzer.txt",
+            "TermFilterMinWeightCutoff.txt",
+            "IDocumentTerm.txt",
+            "RetroToolkit.VectorSpace.txt",
+            "RetroToolkit.Basic.VocabularyFilters.txt",
+            "ITermCollection.txt",
+            "RetroToolkit.Basic.ResultFilters.txt",
+            "RetroToolkit.Basic.txt",
+            "RetroToolkit.txt",
+            "ITokenizer.txt"
+        ]
+    },
+    {
+        "dataTest": "R57.txt",
+        "dataSet":[
+            "RetroProjectForm.Designer.txt",
+            "RetroProjectForm.txt",
+            "ICandidateLinkCollection.txt",
+            "ICandidateLink.txt",
+            "ICandidateLinkFeedbackCalculator.txt",
+            "ICandidateLinkRankCalculator.txt",
+            "ResultFilterDeltaChopperLow.txt",
+            "ResultFilterDeltaChopperHigh.txt",
+            "IDataFactory.txt",
+            "IDocument.txt",
+            "IResultFilter.txt",
+            "Term.txt",
+            "CandidateLinkCollection.txt",
+            "ResultFilterRandomNGlobal.txt",
+            "ResultFilterTopNRankLow.txt",
+            "IDocumentTermWeightNormalizer.txt",
+            "PorterStemmer.txt",
+            "ResultFilterTopNRankGlobal.txt",
+            "IDocumentCollection.txt",
+            "DataFactory.txt",
+            "ResultFilterRandomNLocal.txt",
+            "ITermWeightCalculator.txt",
+            "IDocumentTermFilter.txt",
+            "ResultFilterTopPercentileGlobalRankHigh.txt",
+            "IDocumentLexicalAnalyzer.txt",
+            "ResultFilterTopNRankHigh.txt",
+            "RetroToolkit.VectorSpace.txt",
+            "ResultFilterTop1NotYetExamined.txt",
+            "CandidateLink.txt",
+            "Document.txt",
+            "RetroToolkit.Basic.ResultFilters.txt",
+            "TermCollection.txt",
+            "IDocumentTermCollection.txt",
+            "IDocumentTerm.txt",
+            "DocumentTerm.txt",
+            "RetroToolkit.Basic.txt",
+            "ResultFilterTopQuartileRank.txt",
+            "ITokenizer.txt",
+            "ITermCollection.txt",
+            "DocumentTermCollection.txt",
+            "ITerm.txt",
+            "RetroToolkit.txt",
+            "RankCalculatorBasic.txt",
+            "ResultFilterTopPercentileLocalRankHigh.txt",
+            "ResultFilterTopPercentileLocalRankLow.txt",
+            "WeightCalculator_Okapi.txt",
+            "WeightCalculator_LTU.txt",
+            "DocumentNormalizerSquareNorm.txt",
+            "ResultFilterTopNRankBoth.txt",
+            "TermFilterMinWeightCutoff.txt",
+            "WeightCalculator_TF_IDF.txt"
+        ]
+    },
+    {
+        "dataTest": "R58.txt",
+        "dataSet":[
+            "RequirementsPane.txt",
+            "ICandidateLinkCollection.txt",
+            "ICandidateLinkFeedbackCalculator.txt",
+            "ICandidateLink.txt",
+            "IDataFactory.txt",
+            "IDocumentCollection.txt",
+            "RequirementsPaneLow.txt",
+            "IDocumentTermCollection.txt",
+            "IDocumentTerm.txt",
+            "IDocument.txt",
+            "CandidateLink.txt",
+            "RequirementsPane.Designer.txt",
+            "RequirementsPaneHigh.txt",
+            "DocumentTerm.txt",
+            "Document.txt",
+            "CandidateLinkCollection.txt",
+            "RetroProjectForm.txt",
+            "DataFactory.txt",
+            "RequirementsPaneLow.Designer.txt",
+            "DocumentTermCollection.txt",
+            "RequirementsPaneHigh.Designer.txt",
+            "RetroProjectForm.Designer.txt"
+        ]
+    },
+    {
+        "dataTest": "R59.txt",
+        "dataSet":[
+            "SerializerClassicRetroFileFormat.txt",
+            "RetroProjectForm.txt",
+            "RetroApplication.txt"
+        ]
+    },
+    {
+        "dataTest": "R60.txt",
+        "dataSet":[]
+    },
+    {
+        "dataTest": "R61.txt",
+        "dataSet":[]
+    },
+    {
+        "dataTest": "R62.txt",
+        "dataSet": ["RequirementsPaneLow.txt"]
+    },
+    {
+        "dataTest": "R63.txt",
+        "dataSet": ["RequirementsPaneHigh.txt"]
+    },
+    {
+        "dataTest": "R64.txt",
+        "dataSet":[]
+    },
+    {
+        "dataTest": "R65.txt",
+        "dataSet": ["ResultFilterDeltaChopperLow.txt"]
+    },
+    {
+        "dataTest": "R66.txt",
+        "dataSet": ["RequirementsPaneLow.txt"]
+    }
+]

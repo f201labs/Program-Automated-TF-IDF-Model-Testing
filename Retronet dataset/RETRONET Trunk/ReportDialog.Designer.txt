@@ -1,0 +1,80 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Windows.Forms;
+
+namespace org.traceabilitycenter.Retro.UI
+{
+    partial class ReportDialog
+    {
+        #region Windows Form Designer generated code
+
+        /// <summary> 
+        /// Required method for Designer support - do not modify 
+        /// the contents of this method with the code editor.
+        /// </summary>
+	    private void InitializeComponent()
+        {
+            this.chklstReports = new System.Windows.Forms.CheckedListBox();
+            this.SuspendLayout();
+            // 
+            // cbCancel
+            // 
+            this.cbCancel.Location = new System.Drawing.Point(389, 278);
+            // 
+            // cbOk
+            // 
+            this.cbOk.Location = new System.Drawing.Point(293, 278);
+            // 
+            // Line1
+            // 
+            this.Line1.Location = new System.Drawing.Point(6, 265);
+            this.Line1.Size = new System.Drawing.Size(487, 6);
+            // 
+            // chklstReports
+            // 
+            this.chklstReports.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.chklstReports.FormattingEnabled = true;
+            this.chklstReports.Location = new System.Drawing.Point(0, 0);
+            this.chklstReports.Name = "chklstReports";
+            this.chklstReports.Size = new System.Drawing.Size(487, 267);
+            this.chklstReports.TabIndex = 13;
+            // 
+            // ReportDialog
+            // 
+            this.ClientSize = new System.Drawing.Size(487, 307);
+            this.Controls.Add(this.chklstReports);
+            this.MinimumSize = new System.Drawing.Size(300, 300);
+            this.Name = "ReportDialog";
+            this.Padding = new System.Windows.Forms.Padding(0, 0, 0, 40);
+            this.Controls.SetChildIndex(this.chklstReports, 0);
+            this.Controls.SetChildIndex(this.cbCancel, 0);
+            this.Controls.SetChildIndex(this.Line1, 0);
+            this.Controls.SetChildIndex(this.cbOk, 0);
+            this.ResumeLayout(false);
+
+        }
+
+        private System.Windows.Forms.CheckedListBox chklstReports;
+
+        #endregion
+    }
+}

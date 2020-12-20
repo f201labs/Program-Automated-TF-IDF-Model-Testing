@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{2477478A-0614-4F9D-A714-5363EA987EAE}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>RetroToolkit.Basic.VocabularyFilters</RootNamespace>
+    <AssemblyName>RetroToolkit.Basic.VocabularyFilters</AssemblyName>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\doc\RetroToolkit.Basic.VocabularyFilters.XML</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="VocabularyFilterRemoveUltraRareTermsTermFreq2.cs" />
+    <Compile Include="VocabularyFilterRemoveUltraRareTermsTermFreq.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VocabularyFilterRemoveCommonTermsDocFreq.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="VocabularyFilterRemoveCommonTermsTermFreq.cs" />
+    <Compile Include="VocabularyFilterRemoveLowKiTerms.cs" />
+    <Compile Include="VocabularyFilterRemoveStopWords.cs" />
+    <Compile Include="VocabularyFilterRemoveUltraRareTermsDocFreq.cs" />
+    <Compile Include="VocabularyFilterStatisticalStopword.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RetroToolkit.Basic\RetroToolkit.Basic.csproj">
+      <Project>{2CB886CD-C217-4706-8F9A-F6EA590F4957}</Project>
+      <Name>RetroToolkit.Basic</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RetroToolkit\RetroToolkit.csproj">
+      <Project>{291D9F0F-CF88-42B5-BA47-6BB7D973D6AE}</Project>
+      <Name>RetroToolkit</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

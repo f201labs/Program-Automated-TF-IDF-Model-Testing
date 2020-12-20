@@ -1,0 +1,150 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.ComponentModel;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+using System.Windows.Forms;
+using org.traceabilitycenter.RetroToolkit;
+using org.traceabilitycenter.RetroToolkit.Data;
+
+namespace org.traceabilitycenter.Retro.UI
+{
+    /// <summary>
+    /// This control renders the high level requirements pane
+    /// </summary>
+    public partial class RequirementsPaneHigh : RequirementsPane
+    {
+        public override RetroDocument Project {
+            get {
+                return base.Project;
+            }
+            set {
+                base.Project = value;
+                Requirements.CurrentCell = null;
+
+                if (value != null)
+                {
+                    Requirements.DataSource = value.HighLevelRequirements;
+                }
+                else
+                {
+                    Requirements.DataSource = null;
+                }
+            }
+        }
+            
+        public RequirementsPaneHigh()
+        {
+            InitializeComponent();
+        }
+
+        // wkkong 8/21/10 - Replaced CellContentClick with CellMouseClick
+        void Requirements_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+            {
+                if (Requirements.Columns[e.ColumnIndex] == this.colKeywords)
+                {
+                    RetroToolkit.Basic.Data.Document selectedItem = Requirements.Rows[e.RowIndex].DataBoundItem as RetroToolkit.Basic.Data.Document; //get the data bound item
+                    KeywordDialog kd = new KeywordDialog();
+                    Dictionary<string, bool> keywords = new Dictionary<string, bool>();
+                    kd.Project = this.Project;
+                    if (selectedItem.Keywords != null)
+                    {
+                        kd.DocumentModel = selectedItem.Keywords;
+                        foreach (IDocumentTerm term in selectedItem.Keywords)
+                            keywords.Add(term.Term.Text, term.Enabled);
+                    }
+                    kd.ShowDialog();
+
+                    // wkkong 8/26/10 - Add keyword check/uncheck logging
+                    if (selectedItem.Keywords != null)
+                    {
+                        foreach (IDocumentTerm term in kd.DocumentModel)
+                        {
+                            if (!keywords.ContainsKey(term.Term.Text))
+                            {
+                                RetroApplication.ActionLogger.Write((Requirements.Rows[e.RowIndex].DataBoundItem as RetroToolkit.Basic.Data.Document).ID + ",Keyword: '" + term.Term.Text + "' added"); // added
+                            }
+                            else if ((!term.Enabled.Equals(keywords[term.Term.Text])) && (term.Enabled.Equals(false)))
+                            {
+                                RetroApplication.ActionLogger.Write((Requirements.Rows[e.RowIndex].DataBoundItem as RetroToolkit.Basic.Data.Document).ID + ",Keyword: '" + term.Term.Text + "' unchecked"); // turned off
+                            }
+                            else if((!term.Enabled.Equals(keywords[term.Term.Text])) && (term.Enabled.Equals(true)))
+                            {
+                                RetroApplication.ActionLogger.Write((Requirements.Rows[e.RowIndex].DataBoundItem as RetroToolkit.Basic.Data.Document).ID + ",Keyword: '" + term.Term.Text + "' checked"); // turned on
+                            }
+                        }
+                    }
+                }
+                else if (Requirements[e.ColumnIndex, e.RowIndex].EditType != null)
+                {
+                    // wkkong 8/21/10 - Enhancement to select row and drop the combobox when clicked.
+                    if (Requirements[e.ColumnIndex, e.RowIndex].EditType.Name.ToString().Equals("DataGridViewComboBoxEditingControl"))
+                    {
+                        DataGridViewComboBoxCell cell = (DataGridViewComboBoxCell)Requirements[e.ColumnIndex, e.RowIndex];
+                        Requirements.CurrentCell = cell;
+
+                        Requirements.BeginEdit(true);
+
+                        DataGridViewComboBoxEditingControl editingControl = (DataGridViewComboBoxEditingControl)Requirements.EditingControl;
+                        editingControl.DroppedDown = true;
+                    }
+                }
+            }
+            // wkkong 8/23/10 - High level requirement sorting not implemented?
+            //else
+            //{
+            //    // Header row was clicked. Log Sort action.
+            //    string colName = ((DataGridView)sender).Columns[e.ColumnIndex].Name.ToString();
+            //    if (!colName.Equals(colKeywords.Name))
+            //        RetroApplication.ActionLogger.Write(IDColumnName + ",Sort by " + colName);
+            //}
+        }
+
+        private void RequirementsHigh_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+        {
+            if (Requirements.Columns[Requirements.CurrentCell.ColumnIndex] == this.colHighLevelStatus)
+            {
+                // Check box column
+                ComboBox comboBox = e.Control as ComboBox;
+
+                // wkkong 8/21/10 - Remove any existing handlers before adding the handler
+                comboBox.SelectedValueChanged -= new EventHandler(comboBox_SelectedValueChanged);
+                comboBox.SelectedValueChanged += new EventHandler(comboBox_SelectedValueChanged);
+            }
+        }
+
+        void comboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            // wkkong 8/21/10 - Log marked link.
+            Requirements.Columns.Contains(IDColumnName);
+            foreach (DataGridViewRow row in Requirements.SelectedRows)
+            {
+                RetroApplication.ActionLogger.Write(row.Cells[IDColumnName].Value.ToString() + ",Marked " + ((ComboBox)sender).SelectedItem.ToString());
+            }
+
+        }
+    }
+}

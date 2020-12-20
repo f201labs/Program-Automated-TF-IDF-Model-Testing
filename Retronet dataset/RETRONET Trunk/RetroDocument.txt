@@ -1,0 +1,405 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Text;
+using System.IO;
+using System.Data;
+using System.Diagnostics;
+using System.Xml;
+using System.ComponentModel;
+
+using org.traceabilitycenter.RetroToolkit.Data;
+
+namespace org.traceabilitycenter.RetroToolkit
+{
+    public class RetroDocument : ICloneable
+    {
+        // wkkong 8/21/10 - Add Action Logger and FakeMode flag
+        // wkkong 9/10/10 - Removed FakeMode as FakeRetro will not be part of the trunk.
+        // jlarsen 5/8/2013 - Moved Action Logger to RetroApplication
+
+        //public static bool FakeMode = false;
+
+        private IDataFactory _dataFactory = null;
+        /// <summary>
+        /// Gets or sets the data factory.
+        /// </summary>
+        /// <value>
+        /// The data factory.
+        /// </value>
+        public IDataFactory DataFactory
+        {
+            get { return _dataFactory; }
+            set {
+                _dataFactory = value;
+                _highLevelRequirements = _dataFactory.CreateDocumentCollection(_highLevelRequirements);
+                _lowLevelRequirements = _dataFactory.CreateDocumentCollection(_lowLevelRequirements);
+                _vocabulary = _dataFactory.CreateTermCollection(_vocabulary);
+            }
+        }
+
+        private String _name = null;
+        /// <summary>
+        /// Gets or sets the name.
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+        [Description("Document Name")]
+        public String Name
+        {
+            get { return _name; }
+            set { _name = value; }
+        }
+
+        private IRetroDocumentSerializer _serializer = null;
+        /// <summary>
+        /// Gets or sets the serializer.
+        /// </summary>
+        /// <value>
+        /// The serializer.
+        /// </value>
+        [Description("Serialization Method")]
+        public IRetroDocumentSerializer Serializer
+        {
+            get { return _serializer; }
+            set { _serializer = value; }
+        }
+
+        private IVocabularyStemmer _stemmer = null;
+        /// <summary>
+        /// Gets or sets the stemmer.
+        /// </summary>
+        /// <value>
+        /// The stemmer.
+        /// </value>
+        [Description("Parsing Stemmer")]
+        public IVocabularyStemmer Stemmer
+        {
+            get { return _stemmer; }
+            set { _stemmer = value; }
+        }
+
+        private IDocumentLexicalAnalyzer _analyzer = null;
+        /// <summary>
+        /// Gets or sets the analyzer.
+        /// </summary>
+        /// <value>
+        /// The analyzer.
+        /// </value>
+        [Description("Document Analysis Method")]
+        public IDocumentLexicalAnalyzer Analyzer
+        {
+            get { return _analyzer; }
+            set { _analyzer = value; }
+        }
+
+        private List<IVocabularyFilter> _vocabularyFilters = null;
+        /// <summary>
+        /// Gets the vocabulary filters.
+        /// </summary>
+        /// <value>
+        /// The vocabulary filters.
+        /// </value>
+        [Description("Document Vocabulary Filters")]
+        public List<IVocabularyFilter> VocabularyFilters
+        {
+            get {
+                if (_vocabularyFilters == null) _vocabularyFilters = new List<IVocabularyFilter>(); 
+                return _vocabularyFilters;
+            }
+        }
+
+        private ITermWeightCalculator _weightMethod = null;
+        /// <summary>
+        /// Gets or sets the weight method.
+        /// </summary>
+        /// <value>
+        /// The weight method.
+        /// </value>
+        [Description("Weight Calculation Method")]
+        public ITermWeightCalculator WeightMethod
+        {
+            get { return _weightMethod; }
+            set { _weightMethod = value; }
+        }
+
+        private List<IDocumentTermFilter> _termFilters = null;
+        /// <summary>
+        /// Gets the term filters.
+        /// </summary>
+        /// <value>
+        /// The term filters.
+        /// </value>
+        [Description("Document Term Filters")]
+        public List<IDocumentTermFilter> TermFilters
+        {
+            get
+            {
+                if (_termFilters == null) _termFilters = new List<IDocumentTermFilter>();
+                return _termFilters;
+            }
+        }
+
+        private bool _enableFeedback = true;
+        [Description("Enable Feedback")]
+        public bool EnableFeedback
+        {
+            get { return _enableFeedback; }
+            set { _enableFeedback = value; }
+        }
+
+        private ICandidateLinkFeedbackCalculator _feedbackMethod = null;
+        /// <summary>
+        /// Gets or sets the feedback method.
+        /// </summary>
+        /// <value>
+        /// The feedback method.
+        /// </value>
+        [Description("Feedback Method")]
+        public ICandidateLinkFeedbackCalculator FeedbackMethod
+        {
+            get { return _feedbackMethod; }
+            set { _feedbackMethod = value; }
+        }
+
+        private IDocumentTermWeightNormalizer _docNormalizer = null;
+        /// <summary>
+        /// Gets or sets the doc normalizer.
+        /// </summary>
+        /// <value>
+        /// The doc normalizer.
+        /// </value>
+        [Description("Normalization Method")]
+        public IDocumentTermWeightNormalizer DocNormalizer
+        {
+            get { return _docNormalizer; }
+            set { _docNormalizer = value; }
+        }
+
+        private ICandidateLinkRankCalculator _rankingMethod = null;
+        /// <summary>
+        /// Gets or sets the ranking method.
+        /// </summary>
+        /// <value>
+        /// The ranking method.
+        /// </value>
+        [Description("Rank Calculation Method")]
+        public ICandidateLinkRankCalculator RankingMethod
+        {
+            get { return _rankingMethod; }
+            set { _rankingMethod = value; }
+        }
+
+        private List<IResultFilter> _resultFilters = null;
+        /// <summary>
+        /// Gets the result filters.
+        /// </summary>
+        /// <value>
+        /// The result filters.
+        /// </value>
+        [Description("Result Filtering Method")]
+        public List<IResultFilter> ResultFilters
+        {
+            get
+            {
+                if (_resultFilters == null) _resultFilters = new List<IResultFilter>();
+                return _resultFilters;
+            }
+        }
+
+        private IDocumentCollection _highLevelRequirements = null;
+        /// <summary>
+        /// Gets the high level requirements.
+        /// </summary>
+        /// <value>
+        /// The high level requirements.
+        /// </value>
+        [Description("Collection to hold all of the high level requirements")]
+        public IDocumentCollection HighLevelRequirements
+        {
+            get { return _highLevelRequirements; }
+        }
+
+        private IDocumentCollection _lowLevelRequirements = null;
+        /// <summary>
+        /// Gets the low level requirements.
+        /// </summary>
+        /// <value>
+        /// The low level requirements.
+        /// </value>
+        [Description("Collection to hold all of the low level requirements")]
+        public IDocumentCollection LowLevelRequirements
+        {
+            get { return _lowLevelRequirements; }
+        }
+
+        protected StringCollection _stopWords = null;
+        /// <summary>
+        /// Gets the stop words.
+        /// </summary>
+        /// <value>
+        /// The stop words.
+        /// </value>
+        [Description("Collection of stop words")]
+        public StringCollection StopWords
+        {
+            get
+            {
+                if(_stopWords == null) { _stopWords = new StringCollection(); }
+                return _stopWords;
+            }
+        }
+
+        protected ITermCollection _vocabulary = null;
+        /// <summary>
+        /// Gets the vocabulary.
+        /// </summary>
+        /// <value>
+        /// The vocabulary.
+        /// </value>
+        [Description("Collection of document vocabulary terms")]
+        public ITermCollection Vocabulary
+        {
+            get { return _vocabulary; }
+        }
+
+        /// <summary>
+        /// Modes the Document can be in
+        /// </summary>
+        public enum DocMode : int { Trace = 0, Assess = 1 };
+
+        [Description("Mode in which Retro will run")]
+        public DocMode Mode = DocMode.Trace;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RetroDocument"/> class.
+        /// </summary>
+        public RetroDocument() { }
+
+        /// <summary>
+        //TraceItems will only trace high level requirements selected by the user.
+        //If a null DocumentCollection is passed, traces all nodes
+        /// </summary>
+        /// <param name="traceDocs"></param>
+        public void TraceItems(IDocumentCollection traceDocs)
+        {
+            if (traceDocs == null) traceDocs = this.HighLevelRequirements;
+            TraceItems(traceDocs, this.LowLevelRequirements);
+        }
+
+        /// <summary>
+        /// Performs a trace to find candidate links between the
+        /// highDocs and lowDocs collections
+        /// </summary>
+        /// <param name="highDocs"></param>
+        /// <param name="lowDocs"></param>
+        public void TraceItems(IDocumentCollection highDocs, IDocumentCollection lowDocs)
+        {
+            Initialize();
+            
+            if (FeedbackMethod != null)
+            {
+                FeedbackMethod.clearCandidateLinkFeedback(highDocs, lowDocs);
+
+                // Turn off feedback if FakeMode is true
+                //if (EnableFeedback && (!FakeMode))
+                if (EnableFeedback)
+                {
+                    FeedbackMethod.calculateCandidateLinkFeedback(highDocs, lowDocs);
+                }
+            }
+            DocNormalizer.normalizeTermWeights(this.HighLevelRequirements);
+            DocNormalizer.normalizeTermWeights(this.LowLevelRequirements);
+            RankingMethod.calculateCandidateLinkRanks(highDocs, lowDocs);
+
+            foreach (IResultFilter filter in this.ResultFilters)
+            {
+                filter.applyResultFilter(highDocs, lowDocs);
+            }
+        }
+
+        protected bool _initialized = false;
+        /// <summary>
+        /// Initializes this instance.
+        /// </summary>
+        public void Initialize()
+        {
+            if (_initialized) return;
+
+            IDocumentCollection docs = DataFactory.CreateDocumentCollection(LowLevelRequirements);
+            docs.AddRange(HighLevelRequirements);
+
+            Analyzer.analyzeDocumentCollection(docs, Vocabulary, Stemmer);
+
+            foreach (IVocabularyFilter vFilter in this.VocabularyFilters) { vFilter.applyVocabularyFilter(this); }
+
+            WeightMethod.calculateTermWeights(Vocabulary, docs);
+
+            DocNormalizer.normalizeTermWeights(this.HighLevelRequirements);
+            DocNormalizer.normalizeTermWeights(this.LowLevelRequirements);
+
+            foreach (IDocumentTermFilter tFilter in this.TermFilters) { tFilter.applyDocumentTermFilter(docs, Vocabulary); }
+
+            DocNormalizer.normalizeTermWeights(this.HighLevelRequirements);
+            DocNormalizer.normalizeTermWeights(this.LowLevelRequirements);
+
+            Vocabulary.ResetIDs();
+
+            _initialized = true;
+        }
+
+        #region ICloneable Members
+
+        /// <summary>
+        /// Creates a new object that is a copy of the current instance.
+        /// </summary>
+        /// <returns>
+        /// A new object that is a copy of this instance.
+        /// </returns>
+        public object Clone()
+        {
+            RetroDocument newDoc = new RetroDocument();
+            newDoc._analyzer = this._analyzer;
+            newDoc._lowLevelRequirements = this._lowLevelRequirements;
+            newDoc._highLevelRequirements = this._highLevelRequirements;
+            newDoc._feedbackMethod = this._feedbackMethod;
+            newDoc._rankingMethod = this._rankingMethod;
+            newDoc._serializer = this._serializer;
+            newDoc._stemmer = this._stemmer;
+            newDoc._stopWords = this._stopWords;
+            newDoc._vocabulary = this._vocabulary;
+            newDoc._weightMethod = this._weightMethod;
+            newDoc._dataFactory = this._dataFactory;
+            if(this._resultFilters != null) newDoc._resultFilters = new List<IResultFilter>(this._resultFilters);
+            if(this._vocabularyFilters != null) newDoc._vocabularyFilters = new List<IVocabularyFilter>(this._vocabularyFilters);
+            newDoc._docNormalizer = this._docNormalizer;
+            newDoc._termFilters = this._termFilters;
+            newDoc._serializer = this._serializer;
+            return newDoc;
+        }
+
+        #endregion
+    }
+}

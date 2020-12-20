@@ -1,0 +1,4 @@
+Since RETRO’s tracing and assessing modes are based upon algorithms that will allow processes to be improved as the system receives FEEDBACK from the user. The user shall select a low level requirement and identify the link status from the following list:
+•	Link
+•	No Link
+•	Default

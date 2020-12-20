@@ -1,0 +1,114 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using org.traceabilitycenter.RetroToolkit.Data;
+
+namespace org.traceabilitycenter.RetroToolkit.Basic.Data
+
+{
+    public class DocumentTerm : IDocumentTerm
+    {
+        /// <summary>
+        /// The term
+        /// </summary>
+        private ITerm _term;
+        public ITerm Term
+        {
+            get { return _term; }
+            set { _term = value; }
+        }
+
+        /// <summary>
+        /// The source of the term, i.e. Original or Feedback
+        /// </summary>
+        private String _termSource = String.Empty;
+        public String TermSource
+        {
+            get { return _termSource; }
+            set { _termSource = value; }
+        }
+
+        /// <summary>
+        /// number of times the term occurs
+        /// </summary>
+        private int _frequency;
+        public int Frequency
+        {
+            get { return _frequency; }
+            set { _frequency = value; }
+        }
+        
+        /// <summary>
+        /// The relative importance of the term
+        /// </summary>
+        private double _weight;
+        public double Weight
+        {
+            get { return _weight; }
+            set
+            {
+                _weight = value;
+                if (OriginalWeight == 0.0)
+                {
+                    OriginalWeight = value;
+                }
+            }
+        }
+
+        private bool _enabled = true;
+        /// <summary>
+        /// Whether to use the term
+        /// </summary>
+        public bool Enabled
+        {
+            get { return _enabled; }
+            set { _enabled = value; }
+        }
+
+        /// <summary>
+        /// The original relative importance of the term
+        /// </summary>
+        public double OriginalWeight = 0.0;
+
+        public double PositiveWeightModifiers = 0.0;
+        public double PositiveWeightNormalizer = 0.0;
+        public double NegativeWeightModifiers = 0.0;
+        public double NegativeWeightNormalizer = 0.0;
+
+        /// <summary>
+        /// the weight modifier
+        /// </summary>
+        //public double WeightModifier;
+        
+        //public bool Thesaurus;
+
+        public DocumentTerm() { }
+        
+        public DocumentTerm(ITerm term) { this.Term = term; }
+        
+        public override String ToString()
+        {
+            return (Term == null || Term.Text == null) ? String.Empty : Term.Text;
+        }
+    }
+}

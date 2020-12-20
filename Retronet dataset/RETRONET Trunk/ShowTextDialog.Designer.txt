@@ -1,0 +1,94 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+namespace org.traceabilitycenter.Retro.UI
+{
+    partial class ShowTextDialog
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed;
+        /// otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.tbOutput = new System.Windows.Forms.RichTextBox();
+            this.SuspendLayout();
+            // 
+            // cbCancel
+            // 
+            this.cbCancel.Location = new System.Drawing.Point(499, 401);
+            // 
+            // cbOk
+            // 
+            this.cbOk.Location = new System.Drawing.Point(403, 401);
+            // 
+            // Line1
+            // 
+            this.Line1.Location = new System.Drawing.Point(6, 393);
+            this.Line1.Size = new System.Drawing.Size(587, 6);
+            // 
+            // tbOutput
+            // 
+            this.tbOutput.Location = new System.Drawing.Point(6, 3);
+            this.tbOutput.Name = "tbOutput";
+            this.tbOutput.Size = new System.Drawing.Size(585, 384);
+            this.tbOutput.TabIndex = 13;
+            this.tbOutput.Text = "";
+            // 
+            // ShowXMLDialog
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(599, 430);
+            this.Controls.Add(this.tbOutput);
+            this.Name = "ShowXMLDialog";
+            this.Controls.SetChildIndex(this.tbOutput, 0);
+            this.Controls.SetChildIndex(this.cbOk, 0);
+            this.Controls.SetChildIndex(this.cbCancel, 0);
+            this.Controls.SetChildIndex(this.Line1, 0);
+            this.ResumeLayout(false);
+        }
+
+        #endregion
+
+        private System.Windows.Forms.RichTextBox tbOutput;
+    }
+}

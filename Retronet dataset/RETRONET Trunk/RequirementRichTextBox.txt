@@ -1,0 +1,140 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Windows.Forms;
+using System.Drawing;
+
+namespace org.traceabilitycenter.Retro.UI
+{
+    /// <summary>
+    /// A textbox that supports the display of requirements with keyword
+    /// highlighting functionality
+    /// </summary>
+    class RequirementRichTextBox : RichTextBox
+    {
+        ContextMenu mnuContext = new ContextMenu();
+        private int _fontSize = 25;
+        public int FontSize
+        {
+            get { return _fontSize; }
+            set
+            {
+                if (this.Rtf != null)
+                {
+                    this.Rtf = this.Rtf.Replace(@"\fs17", @"\fs" + value.ToString());
+                    this.Rtf = this.Rtf.Replace(
+                        @"\fs" + _fontSize.ToString(),
+                        @"\fs" + value.ToString()
+                    );
+                }
+                _fontSize = value;
+            }
+        }
+
+        private string _highlightText;
+        public String HighlightText
+        {
+            get { return _highlightText; }
+            set
+            {
+                _highlightText = value;
+                Highlight(value);
+            }
+        }
+
+        public RequirementRichTextBox()
+        {
+            this.BackColor = Color.White;
+            this.MouseDown += new MouseEventHandler(RequirementRichTextBox_MouseDown);
+            mnuContext.MenuItems.Add("Text Bigger", TextBiggerAction);
+            mnuContext.MenuItems.Add("Text Smaller", TextSmallerAction);
+        }
+
+        public void AppendRequirement(string reqID, string reqDesc)
+        {
+            String reqText = @"\b\f0 " + reqID + @"\b0 \par\par ";
+            this.Rtf = this.Rtf.Insert(this.Rtf.LastIndexOf("}") - 1, reqText);
+            this.AppendText(Environment.NewLine);
+            this.AppendText(reqDesc);
+            this.FontSize = this.FontSize;
+            Highlight(this.HighlightText);
+        }
+
+        void RequirementRichTextBox_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+                mnuContext.Show(this, new Point(e.X, e.Y));
+        }
+
+        void TextBiggerAction(object sender, EventArgs e)
+        {
+            this.FontSize += 3;
+        }
+
+        void TextSmallerAction(object sender, EventArgs e)
+        {
+            this.FontSize -= 3;
+        }
+
+        public void Highlight(String findText)
+        {
+            //Save the current selection
+            int originalStart = this.SelectionStart;
+            int originalLength = this.SelectionLength;
+
+            SuspendLayout();
+
+            try
+            {
+                //Clear the highlights
+                SelectAll();
+                SelectionBackColor = Color.White;
+                //highlight the specified text
+                if (findText != null && findText.Length > 0)
+                {
+                    foreach (String findWord in findText.Split(' '))
+                    {
+                        int startFrom = 0;
+                        
+                        //Search for the specified text
+                        while (Find(findWord, startFrom, RichTextBoxFinds.None) > -1)
+                        {
+                            //and highlight it
+                            SelectionBackColor = Color.Yellow;
+                            startFrom = SelectionStart + SelectionLength;
+                        }
+                    }
+
+                }
+                //Restore the previous selection
+                SelectionStart = originalStart;
+                SelectionLength = originalLength;
+
+            }
+            finally
+            {
+                ResumeLayout();
+            }
+        }
+    }
+}

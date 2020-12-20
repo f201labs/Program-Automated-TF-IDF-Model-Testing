@@ -1,0 +1,70 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Windows.Forms;
+using System.Diagnostics;
+using System.Drawing;
+using org.traceabilitycenter.Retro.UI;
+
+namespace org.traceabilitycenter.Retro
+{
+    class Retro
+    {
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            //Instantiate the form and load the default size, window status and
+            //location from the saved properties
+            Form app = new org.traceabilitycenter.Retro.UI.RetroApplication();
+            app.WindowState = Properties.Settings.Default.WindowState;
+            app.Size = Properties.Settings.Default.Size;
+            app.StartPosition = Properties.Settings.Default.StartPosition;
+            app.Location = Properties.Settings.Default.Location;
+            app.FormClosing += new FormClosingEventHandler(app_FormClosing);
+
+            //Add exception handling capabilities
+            //Disabled for NASA confidentiality reasons
+            //com.codinghorror.ExceptionHandler.UnhandledExceptionManager.AddHandler(false);
+
+            //Run the form
+            Application.Run(app);
+        }
+
+        //When closing the application, save the window properties
+        static void app_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Form app = sender as Form;
+            if(app == null) return;
+            Properties.Settings.Default.WindowState = app.WindowState;
+            Properties.Settings.Default.Size = app.Size;
+            Properties.Settings.Default.StartPosition = FormStartPosition.Manual;
+            Properties.Settings.Default.Location = new Point(app.Left, app.Top);
+            Properties.Settings.Default.Save();
+        }
+    }
+}

@@ -1,0 +1,308 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
+using System.Data;
+using System.Text;
+using System.Windows.Forms;
+using org.traceabilitycenter.RetroToolkit;
+using org.traceabilitycenter.RetroToolkit.Data;
+
+namespace org.traceabilitycenter.Retro.UI
+{
+    public partial class RequirementsPaneLow : RequirementsPane
+    {
+        public override RetroDocument Project
+        {
+            get
+            {
+                return base.Project;
+            }
+            set
+            {
+                for(int i = this.colLowLevelStatus.Items.Count-1; i>=0 ; i--) {
+                    this.colLowLevelStatus.Items.RemoveAt(i);
+                }
+                base.Project = value;
+                if (base.Project != null && base.Project.DataFactory != null)
+                {
+                    this.colLowLevelStatus.Items.AddRange(value.DataFactory.GetLinkStatusList());    
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sets and Gets a HighLevelID to filter the display by
+        /// </summary>
+        public IDocument FilterByHighLevelDocument {
+            get {
+                return _filterByHighLevelDocument;
+            }
+            set {
+                _filterByHighLevelDocument = value;
+                this.tabFilters_Selected(tabFilters, new TabControlEventArgs(tabFilters.SelectedTab, tabFilters.SelectedIndex, TabControlAction.Selected));
+            }
+        }
+        public IDocument _filterByHighLevelDocument = null;
+        
+        public RequirementsPaneLow()
+        {
+            InitializeComponent();
+            Requirements.RowStateChanged += new DataGridViewRowStateChangedEventHandler(Requirements_RowStateChanged);
+            
+            /* not implemented yet */
+            this.groupBox3.Visible = false;
+        }
+
+        /// <summary>
+        /// Activated when the selected tab changes
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void tabFilters_Selected(object sender, TabControlEventArgs e)
+        {
+            if(e.Action != TabControlAction.Selected || Requirements == null || Project == null) return;
+            if(FilterByHighLevelDocument == null) {
+                Requirements.DataSource = null;
+                return;
+            }
+
+            // Get the current sort parameters
+            DataGridViewColumn sortColumn = Requirements.SortedColumn;
+            if (sortColumn == null) sortColumn = colWeight;
+            SortOrder sortDirection = Requirements.SortOrder;
+            // restore original sort parameters
+            if(sortColumn != null && Requirements.DataSource is IBindingList) {
+                Requirements.Sort(sortColumn, (sortDirection == SortOrder.Ascending) ? ListSortDirection.Ascending : ListSortDirection.Descending);
+            }
+
+            // if recommendation tab    
+            if (e.TabPage.Equals(this.tabRecommendation))
+            {
+                //Not implemented yet
+                //RowStyles[1].Height = 125;
+                RowStyles[1].Height = 30;
+                
+                Requirements.DataSource = (FilterByHighLevelDocument == null || FilterByHighLevelDocument.CandidateLinks.Count <= 0) ? null : FilterByHighLevelDocument.CandidateLinks;
+                colWeight.Visible = true;
+                filterDataGrid1.ApplyFilter();
+            }
+            else
+            {
+                DataTable dt = new DataTable();
+                dt.Columns.Add("ID");
+                dt.Columns.Add("Description");
+                dt.Columns.Add("LinkStatus");
+
+                foreach(IDocument doc in Project.LowLevelRequirements) {
+                    ICandidateLink link = FilterByHighLevelDocument.CandidateLinks.FindByLowLevelID(doc.ID);
+                    if (link == null)
+                    {
+                        link = new RetroToolkit.Basic.Data.CandidateLink();
+                        link.LowLevelDoc = doc;
+                        link.HighLevelDoc = FilterByHighLevelDocument;
+                        link.LinkStatus = "Default";
+                        link.Weight = 0D;
+                    }
+                    DataRow dr = dt.NewRow();
+                    dr["ID"] = link.ID;
+                    dr["Description"] = link.Description;
+                    dr["LinkStatus"] = link.LinkStatus;
+                    dt.Rows.Add(dr);
+                }
+                colWeight.Visible = false;
+                Requirements.DataSource = dt;
+            }
+
+            // restore original sort parameters
+            if(sortColumn != null && Requirements.DataSource is IBindingList) {
+                Requirements.Sort(sortColumn, (sortDirection == SortOrder.Ascending) ? ListSortDirection.Ascending : ListSortDirection.Descending);
+            }
+
+            //Fire selection changed event
+            DataGridViewCell cell = Requirements.CurrentCell;
+            Requirements.CurrentCell = null;
+            Requirements.CurrentCell = cell;
+        }
+
+        void Requirements_RowStateChanged(object sender, DataGridViewRowStateChangedEventArgs e)
+        {
+            if(e.StateChanged == DataGridViewElementStates.Displayed) return;
+            DataRowView dr = null;
+            try { dr = e.Row.DataBoundItem as DataRowView; }
+            catch { }
+            if (dr != null && FilterByHighLevelDocument != null)
+            {
+                ICandidateLink link = FilterByHighLevelDocument.CandidateLinks.FindByLowLevelID(dr["ID"] as String);
+                if (link != null || dr["LinkStatus"] as String != "Default")
+                {
+                    if (link == null)
+                    {
+                        link = new RetroToolkit.Basic.Data.CandidateLink();
+                        link.HighLevelDoc = FilterByHighLevelDocument;
+                        link.LowLevelDoc = Project.LowLevelRequirements.FindByID(dr["ID"] as String);
+                        link.HighLevelDoc.CandidateLinks.Add(link);
+                    }
+                    link.LinkStatus = dr["LinkStatus"] as String;
+                }
+                /*
+                ICandidateLink link = e.Row.DataBoundItem as ICandidateLink;
+                if (link == null) return;
+                if (link.LinkStatus != "Default" && !link.HighLevelDoc.CandidateLinks.Contains(link))
+                {
+                    link.HighLevelDoc.CandidateLinks.Add(link);
+                }
+                */
+            }
+        }
+
+        //Format the background based on stats, Link = Green background, Not A Link = red background
+        void Requirements_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            DataGridView dg = sender as DataGridView;
+            if(!dg.Columns.Contains("LowLevelStatus")) return;
+            DataGridViewColumn dc = dg.Columns[e.ColumnIndex];
+
+            if (dc.GetType() == typeof(DataGridViewButtonColumn)) return;
+
+            String status = (dg.Rows[e.RowIndex].Cells["LowLevelStatus"].Value == null) ? "Default" : dg.Rows[e.RowIndex].Cells["LowLevelStatus"].Value.ToString();
+            
+            if (status.Equals("Not A Link"))
+            {
+                e.CellStyle.BackColor = Color.Red;
+            }
+            else if (status.Equals("Link") || status.Equals("AutoLink") || status.Equals("Possible Link"))
+            {
+                e.CellStyle.BackColor = Color.LightGreen;
+            }
+        }
+
+        protected override void OnVisibleChanged(EventArgs e)
+        {
+            if(this.Visible && this.Project != null) {
+                filterDataGrid1.TargetDataGrid = this.Requirements;
+                tabFilters.SelectedTab = this.tabRecommendation;
+                Requirements.Columns["ExternalStatus"].Visible = (Project.Mode == RetroDocument.DocMode.Assess);
+                if (!Requirements.Columns["ExternalStatus"].Visible)
+                {
+                    Requirements.Columns["ExternalStatus"].Width = 0;
+                }
+            }
+            base.OnVisibleChanged(e);
+        }
+
+        // wkkong 8/21/10 - Replaced CellContentClick with CellMouseClick
+        void Requirements_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+            {
+                if (Requirements.Columns[e.ColumnIndex] == this.colKeywords)
+                {
+                    Object selectedItem = Requirements.Rows[e.RowIndex].DataBoundItem; //get the data bound item
+                    if (selectedItem == null) return;
+
+                    KeywordDialog kd = new KeywordDialog();
+                    if (selectedItem is RetroToolkit.Data.ICandidateLink)
+                    {
+                        kd.DocumentModel = ((RetroToolkit.Data.ICandidateLink)selectedItem).LowLevelDoc.Keywords;
+                    }
+                    else if (selectedItem is System.Data.DataRowView)
+                    {
+                        kd.DocumentModel = this.Project.LowLevelRequirements.FindByID(((System.Data.DataRowView)selectedItem)[0].ToString()).Keywords;
+                    }
+
+                    Dictionary<string, bool> keywords = new Dictionary<string, bool>();
+                    foreach (IDocumentTerm term in kd.DocumentModel)
+                        keywords.Add(term.Term.Text, term.Enabled);
+                    kd.Project = this.Project;
+                    kd.ShowDialog();
+
+                    // wkkong 8/26/10 - Add keyword check/uncheck logging
+                    if (kd.DocumentModel != null)
+                    {
+                        foreach (IDocumentTerm term in kd.DocumentModel)
+                        {
+                            if (!keywords.ContainsKey(term.Term.Text))
+                            {
+                                RetroApplication.ActionLogger.Write((Requirements.Rows[e.RowIndex].DataBoundItem as RetroToolkit.Basic.Data.CandidateLink).ID + ",Keyword: '" + term.Term.Text + "' added"); // added
+                            }
+                            else if ((!term.Enabled.Equals(keywords[term.Term.Text])) && (term.Enabled.Equals(false)))
+                            {
+                                RetroApplication.ActionLogger.Write((Requirements.Rows[e.RowIndex].DataBoundItem as RetroToolkit.Basic.Data.CandidateLink).ID + ",Keyword: '" + term.Term.Text + "' unchecked"); // turned off
+                            }
+                            else if ((!term.Enabled.Equals(keywords[term.Term.Text])) && (term.Enabled.Equals(true)))
+                            {
+                                RetroApplication.ActionLogger.Write((Requirements.Rows[e.RowIndex].DataBoundItem as RetroToolkit.Basic.Data.CandidateLink).ID + ",Keyword: '" + term.Term.Text + "' checked"); // turned on
+                            }
+                        }
+                    }
+                }
+                else if (Requirements[e.ColumnIndex, e.RowIndex].EditType != null)
+                {
+                    // wkkong 8/21/10 - Enhancement to enable single click to select row and dropdown combobox.
+                    if (Requirements[e.ColumnIndex, e.RowIndex].EditType.Name.ToString().Equals("DataGridViewComboBoxEditingControl"))
+                    {
+                        DataGridViewComboBoxCell cell = (DataGridViewComboBoxCell)Requirements[e.ColumnIndex, e.RowIndex];
+                        Requirements.CurrentCell = cell;
+
+                        Requirements.BeginEdit(true);
+
+                        DataGridViewComboBoxEditingControl editingControl = (DataGridViewComboBoxEditingControl)Requirements.EditingControl;
+                        editingControl.DroppedDown = true;
+                    }
+                }
+            }
+            else if (e.ColumnIndex >= 0)
+            {
+                // wkkong 8/21/10 - Header row was clicked. Log Sort action.
+                string colName = ((DataGridView)sender).Columns[e.ColumnIndex].Name.ToString();
+                if (!colName.Equals(colKeywords.Name))
+                    RetroApplication.ActionLogger.Write(IDColumnName + ",Sort by " + colName);
+            }
+        }
+
+        private void RequirementsLow_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+        {
+            if (Requirements.Columns[Requirements.CurrentCell.ColumnIndex] == this.colLowLevelStatus)
+            {
+                // Check box column
+                ComboBox comboBox = e.Control as ComboBox;
+
+                // Remove any existing handlers before adding a new handler.
+                comboBox.SelectionChangeCommitted -= new EventHandler(comboBox_SelectionChangeCommitted);
+                comboBox.SelectionChangeCommitted += new EventHandler(comboBox_SelectionChangeCommitted);
+            }
+        }
+
+        void comboBox_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            // wkkong 8/21/10 - Log marked link.
+            Requirements.Columns.Contains(IDColumnName);
+            foreach (DataGridViewRow row in Requirements.SelectedRows)
+            {
+                RetroApplication.ActionLogger.Write("   " + row.Cells[IDColumnName].Value.ToString() + ",Marked " + ((ComboBox)sender).SelectedItem.ToString());
+            }
+        }
+    }
+}

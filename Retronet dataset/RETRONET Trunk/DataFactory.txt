@@ -1,0 +1,126 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+using org.traceabilitycenter.RetroToolkit.Data;
+
+namespace org.traceabilitycenter.RetroToolkit.Basic.Data
+{
+    public class DataFactory : IDataFactory
+    {
+        #region IDataFactory Members
+
+        public ICandidateLinkCollection CreateCandidateLinkCollection()
+        {
+            return new CandidateLinkCollection();
+        }
+
+        public ICandidateLinkCollection CreateCandidateLinkCollection(ICandidateLinkCollection col)
+        {
+            CandidateLinkCollection c = new CandidateLinkCollection();
+            c.AddRange(col);
+            return c;
+        }
+
+        public IDocumentCollection CreateDocumentCollection()
+        {
+            return new DocumentCollection();
+        }
+
+        public IDocumentCollection CreateDocumentCollection(IDocumentCollection col)
+        {
+            DocumentCollection c = new DocumentCollection();
+            if(col != null) c.AddRange(col);
+            return c;
+        }
+
+        public ITermCollection CreateTermCollection()
+        {
+            return new TermCollection();
+        }
+
+        public ITermCollection CreateTermCollection(ITermCollection col)
+        {
+            TermCollection c = new TermCollection();
+            if (col != null)
+            {
+                throw new Exception("The method or operation is not implemented.");
+            }
+            return c;
+        }
+
+        public ICandidateLink CreateCandidateLink()
+        {
+            return new CandidateLink();
+        }
+
+        public ICandidateLink CreateCandidateLink(ICandidateLink link)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
+
+        public IDocument CreateDocument()
+        {
+            return new Document();
+        }
+
+        public IDocument CreateDocument(IDocument doc)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
+
+        public IDocumentTerm CreateDocumentTerm()
+        {
+            return new DocumentTerm();
+        }
+
+        public IDocumentTerm CreateDocumentTerm(IDocumentTerm docTerm)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
+
+        public ITerm CreateTerm()
+        {
+            return new Term();
+        }
+
+        public ITerm CreateTerm(ITerm term)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
+
+        protected object[] linkStatusList = new object[] {
+                "Link",
+                "Not A Link",
+                "Default",
+                "AutoLink",
+                "Possible Link"
+                };
+
+        public object[] GetLinkStatusList()
+        {
+            return linkStatusList;
+        }
+        #endregion
+    }
+}

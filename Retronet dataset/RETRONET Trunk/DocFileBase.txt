@@ -1,0 +1,25 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace org.traceabilitycenter.RetroToolkit.Data
+{
+    /// <summary>
+    /// The vocabulary base to use
+    /// </summary>
+    public enum DocFileBase : int
+    {
+        /// <summary>
+        /// Use the low level document vocabulary only
+        /// </summary>
+        Low_Level_Document_Only = 1,
+        /// <summary>
+        /// Use both documents vocabulary
+        /// </summary>
+        Both_Documents = 2,
+        /// <summary>
+        /// Use the high level document vocabulary only
+        /// </summary>
+        High_Level_Document_Only = 3
+    };
+}

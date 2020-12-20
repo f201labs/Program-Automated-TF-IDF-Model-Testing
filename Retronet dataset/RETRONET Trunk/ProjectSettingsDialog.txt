@@ -1,0 +1,168 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Windows.Forms;
+using CustomDialog;
+using org.traceabilitycenter.RetroToolkit;
+using System.IO;
+
+namespace org.traceabilitycenter.Retro.UI
+{
+
+    /// <summary>
+    /// ProjectSettingsDialog is a dialog which collects the values used to
+    /// initialize a RTMDocument project
+    /// </summary>
+	public partial class ProjectSettingsDialog : BaseDialog {
+
+        protected FolderBrowserDialog dirDialog = new FolderBrowserDialog();
+
+        public ProjectSettingsDialog()
+        {
+			InitializeComponent();
+            dirDialog.ShowNewFolderButton = false;
+            dirDialog.SelectedPath = Environment.SpecialFolder.DesktopDirectory.ToString();
+		}
+
+        private RetroDocument _project = null;
+        public RetroDocument Project 
+        {
+            get
+            {
+                return _project;
+            }
+            set
+            {
+                _project = value;
+
+                this.ddWeightOption.Items.Clear();
+
+                foreach (ICandidateLinkFeedbackCalculator option in RetroToolkit.Basic.PluginList<ICandidateLinkFeedbackCalculator>.GetPlugins())
+                {
+                    this.ddFeedbackMethod.Items.Add(option);
+                }
+                if (this.ddFeedbackMethod.Items.Count > 0) { this.ddFeedbackMethod.SelectedIndex = 0; }
+                //if (this.ddFeedbackMethod.Items.Count == 1) { this.ddFeedbackMethod.Enabled = false; }
+
+                foreach (ICandidateLinkRankCalculator option in RetroToolkit.Basic.PluginList<ICandidateLinkRankCalculator>.GetPlugins())
+                {
+                    this.ddIRMethod.Items.Add(option);
+                }
+                if (this.ddIRMethod.Items.Count > 0) { this.ddIRMethod.SelectedIndex = 0; }
+                //if (this.ddIRMethod.Items.Count == 1) { this.ddIRMethod.Enabled = false; }
+
+                foreach (ITermWeightCalculator option in RetroToolkit.Basic.PluginList<ITermWeightCalculator>.GetPlugins())
+                {
+                    this.ddWeightOption.Items.Add(option);
+                    //if TF*IDF
+                    if(option.GetType().FullName.Equals("org.traceabilitycenter.RetroToolkit.VectorSpace.WeightCalculator_TF_IDF")) {
+                        this.ddWeightOption.SelectedIndex = this.ddWeightOption.Items.Count-1;
+                    }
+                }
+                //if (this.ddWeightOption.Items.Count == 1) { this.ddWeightOption.Enabled = false; }
+
+                this.ddVocabularyBase.Items.AddRange(new object[] {
+                    RetroToolkit.Data.DocFileBase.Low_Level_Document_Only
+                    //,RetroToolkit.Data.DocFileBase.Both_Documents
+                });
+                this.ddVocabularyBase.SelectedIndex = 0;
+                //if (this.ddVocabularyBase.Items.Count == 1) { this.ddVocabularyBase.Enabled = false; }
+
+                this.ddMode.Items.AddRange(new object[] {
+                    "Trace"
+                    //,"Assess"
+                });
+                this.ddMode.SelectedIndex = 0;
+                //if (this.ddMode.Items.Count == 1) { this.ddMode.Enabled = false; }
+
+                //Disable Thesaurus option, which is not supported in the current backend
+                this.txtThesaurus.Enabled = false;
+                this.btnBrowseThesaurus.Enabled = false;
+                this.txtThesaurus.Visible = false;
+                this.btnBrowseThesaurus.Visible = false;
+                this.lblThesaurusFile.Visible = false;
+
+                //Disable Project Mode option, which is not supported in the current backend
+                this.ddMode.Visible = false;
+                this.lblProjectMode.Visible = false;
+            }
+        }
+
+        protected override bool OnOk() {
+            if(
+                tbLowLevel.Text.Trim().Length > 0 &&
+                Directory.Exists(tbLowLevel.Text.Trim()) &&
+                tbHighLevel.Text.Trim().Length > 0 &&
+                Directory.Exists(tbHighLevel.Text.Trim())
+            ) {
+                (Project.Analyzer as RetroToolkit.Basic.DocumentAnalyzerBasic).FileBase = (RetroToolkit.Data.DocFileBase)this.ddVocabularyBase.SelectedItem;
+                Project.RankingMethod = this.ddIRMethod.SelectedItem as ICandidateLinkRankCalculator;
+                Project.FeedbackMethod = this.ddFeedbackMethod.SelectedItem as ICandidateLinkFeedbackCalculator;
+                Project.WeightMethod = (ITermWeightCalculator)this.ddWeightOption.SelectedItem;
+                RetroToolkit.Basic.SerializerClassicRetroFileFormat serializer = Project.Serializer as RetroToolkit.Basic.SerializerClassicRetroFileFormat;
+                serializer.LowDocFileName = tbLowLevel.Text.Trim();
+                serializer.HighDocFileName = tbHighLevel.Text.Trim();
+                serializer.ThesaurusFileName = this.txtThesaurus.Text;
+                serializer.StopWordFileName = this.txtStopWord.Text;
+                serializer.ThesaurusFileName = this.txtThesaurus.Text;
+                return true;
+            }
+            else {
+                MessageBox.Show("A valid high and low level document path must be provided.");
+                return false;
+            }
+        }
+        
+        private void btnBrowseLowLevel_Click(object sender, EventArgs e)
+        {
+            if (dirDialog.ShowDialog() == DialogResult.OK)
+            {
+                this.tbLowLevel.Text = dirDialog.SelectedPath;
+            }
+        }
+
+        private void btnBrowseHighLevel_Click(object sender, EventArgs e)
+        {
+            if (dirDialog.ShowDialog() == DialogResult.OK)
+            {
+                this.tbHighLevel.Text = dirDialog.SelectedPath;
+            }
+        }
+
+        private void btnBrowseThesaurus_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            if (fileDialog.ShowDialog() == DialogResult.OK)
+            {
+                this.txtThesaurus.Text = fileDialog.FileName;
+            }
+        }
+
+        private void btnBrowseStopWord_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            if (fileDialog.ShowDialog() == DialogResult.OK)
+            {
+                this.txtStopWord.Text = fileDialog.FileName;
+            }
+        }
+	}
+}

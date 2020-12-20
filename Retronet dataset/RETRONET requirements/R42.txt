@@ -1,0 +1,1 @@
+“The user shall be able to limit the display of low-level requirements or candidate requirement links.” [1] The user shall be able to designate whether the filter process applies to the selected high level document element (LOCAL) or to all high level document elements (GLOBAL).

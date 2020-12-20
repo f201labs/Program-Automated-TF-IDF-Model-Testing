@@ -1,0 +1,784 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+using System.IO;
+using System.Drawing.Printing;
+using org.traceabilitycenter.RetroToolkit;
+using org.traceabilitycenter.RetroToolkit.Data;
+using System.Collections;
+
+namespace org.traceabilitycenter.Retro.UI
+{
+    public partial class RetroProjectForm : Form
+    {
+        protected PageSetupDialog dlgPageSetup;
+        
+        protected RetroPrintDocument _printDoc;
+        public RetroPrintDocument PrintDoc
+        {
+            set { _printDoc = value; }
+            get { return _printDoc;  }
+        }
+        
+        public ToolStrip ToolStrip
+        {
+            get { return this.toolStrip; }
+        }
+
+        private float autoLinkPercent = 1F;
+        public float AutoLinkPercent
+        {
+            get
+            {
+                return autoLinkPercent;
+            }
+            set
+            {
+                autoLinkPercent = value;
+
+                foreach(IDocument doc in Project.HighLevelRequirements) {
+                    foreach(ICandidateLink link in doc.CandidateLinks) {
+                        if (link.Weight >= autoLinkPercent && link.LinkStatus == "Default")
+                        {
+                            link.LinkStatus = "AutoLink";
+                        }
+                        else if (link.Weight < autoLinkPercent && link.LinkStatus == "AutoLink")
+                        {
+                            link.LinkStatus = "Default";
+                        }
+
+                    }
+                }
+                this.Refresh();
+            }
+        }
+        
+        private RetroDocument _project = null;
+        public RetroDocument Project
+        {
+            get { return _project; }
+            set
+            {
+                _project = value;
+                this.Text = _project != null ? _project.Name : String.Empty;
+                this.reqPaneHigh.Project = value;
+                this.reqPaneLow.Project = value;
+            }
+        }
+
+        protected RetroApplication GetRetro()
+        {
+            return this.MdiParent as RetroApplication;
+        }
+
+        public RetroProjectForm(RetroDocument project)
+        {
+            InitializeComponent();
+            this.menuStrip1.Visible = false;
+            this.toolStrip.Visible = false;
+
+            Project = project;
+
+            Project.TraceItems(null);
+
+            /* not implemented yet */
+            //this.autolinkToolStripMenuItem.Visible = false;
+            //this.toolStripSeparator4.Visible = false;
+        }
+
+        protected override void OnVisibleChanged(EventArgs e)
+        {
+            base.OnVisibleChanged(e);
+            if(this.Visible) {
+                this.reqPaneHigh.Requirements.SelectionChanged +=new EventHandler(Requirements_SelectionChanged);
+                Requirements_SelectionChanged(this.reqPaneHigh.Requirements, new EventArgs());
+            }
+        }
+
+        void Requirements_SelectionChanged(object sender, EventArgs e)
+        {
+            this.reqPaneHigh.Requirements.EndEdit();
+            this.reqPaneLow.Requirements.EndEdit();
+            DataGridView dv = sender as DataGridView;
+            this.reqPaneLow.FilterByHighLevelDocument = null;
+            if (dv == null || dv.SelectedRows.Count <= 0 || dv.SelectedRows[0].Visible == false) return;
+
+            RetroToolkit.Basic.Data.DocumentCollection dc = new RetroToolkit.Basic.Data.DocumentCollection();
+            dc.Add((RetroToolkit.Data.IDocument)dv.SelectedRows[0].DataBoundItem);
+            if(Project != null) Project.TraceItems(dc);
+
+            this.reqPaneLow.FilterByHighLevelDocument = (RetroToolkit.Data.IDocument)dv.SelectedRows[0].DataBoundItem;
+        }
+
+        private void saveAction(object sender, EventArgs e)
+        {
+            this.reqPaneHigh.Requirements.EndEdit();
+            this.reqPaneLow.Requirements.EndEdit();
+            RetroToolkit.Basic.SerializerClassicRetroFileFormat serializer = Project.Serializer as RetroToolkit.Basic.SerializerClassicRetroFileFormat;
+            if (File.Exists(serializer.ProjectFileName))
+            {
+                Cursor.Current = Cursors.WaitCursor;
+                serializer.saveDocument(Project);
+                (MdiParent as RetroApplication).AddRecentlyUsed(serializer.ProjectFileName);
+                Cursor.Current = Cursors.Default;
+                GetRetro().SetStatus("Project " + Path.GetFileName(Path.GetDirectoryName(serializer.ProjectFileName)) + " saved");
+            }
+            else
+            {
+                saveAsAction(sender, e);
+            }
+        }
+
+        private void saveAsAction(object sender, EventArgs e)
+        {
+            this.reqPaneHigh.Requirements.EndEdit();
+            this.reqPaneLow.Requirements.EndEdit();
+            RetroToolkit.Basic.SerializerClassicRetroFileFormat serializer = Project.Serializer as RetroToolkit.Basic.SerializerClassicRetroFileFormat;
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+            saveFileDialog.Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*";
+            if (saveFileDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                Cursor.Current = Cursors.WaitCursor;
+                serializer.ProjectFileName = saveFileDialog.FileName;
+                serializer.saveDocument(Project);
+                (MdiParent as RetroApplication).AddRecentlyUsed(serializer.ProjectFileName);
+                Cursor.Current = Cursors.Default;
+                GetRetro().SetStatus("Project " + Path.GetFileName(Path.GetDirectoryName(serializer.ProjectFileName)) + " saved");
+            }
+        }
+
+        private void traceAllAction(object sender, EventArgs e)
+        {
+            this.reqPaneHigh.Requirements.EndEdit();
+            this.reqPaneLow.Requirements.EndEdit();
+            Cursor.Current = Cursors.WaitCursor;
+            Project.TraceItems(null);
+            Cursor.Current = Cursors.Default;
+            GetRetro().SetStatus("Trace Complete");
+            if (this.reqPaneHigh.Requirements.CurrentCell != null)
+            {
+                this.reqPaneLow.FilterByHighLevelDocument = this.reqPaneHigh.Requirements.Rows[this.reqPaneHigh.Requirements.CurrentCell.RowIndex].DataBoundItem as RetroToolkit.Data.IDocument;
+            }
+        }
+
+        private void traceSelectionAction(object sender, EventArgs e)
+        {
+            this.reqPaneHigh.Requirements.EndEdit();
+            this.reqPaneLow.Requirements.EndEdit();
+            Cursor.Current = Cursors.WaitCursor;
+            RetroToolkit.Data.IDocumentCollection highLevelDocs = new RetroToolkit.Basic.Data.DocumentCollection();
+            foreach(DataGridViewRow dr in this.reqPaneHigh.Requirements.SelectedRows) {
+                highLevelDocs.Add(dr.DataBoundItem as RetroToolkit.Data.IDocument);
+            }
+            Project.TraceItems(highLevelDocs);
+            Cursor.Current = Cursors.Default;
+            GetRetro().SetStatus("Trace Complete");
+            if (this.reqPaneHigh.Requirements.CurrentCell != null)
+            {
+                this.reqPaneLow.FilterByHighLevelDocument = this.reqPaneHigh.Requirements.Rows[this.reqPaneHigh.Requirements.CurrentCell.RowIndex].DataBoundItem as RetroToolkit.Data.IDocument;
+            }
+        }
+
+        private void showXMLAction(object sender, EventArgs e)
+        {
+            this.reqPaneHigh.Requirements.EndEdit();
+            this.reqPaneLow.Requirements.EndEdit();
+            StringWriter sw = new StringWriter();
+            Project.Serializer.WriteRequirementsXMLTo(Project.HighLevelRequirements, sw);
+            ShowTextDialog std = new ShowTextDialog();
+            std.Text = "ShowXMLDialog";
+            std.Show(sw.ToString());
+        }
+
+        private void generateReportsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.reqPaneHigh.Requirements.EndEdit();
+            this.reqPaneLow.Requirements.EndEdit();
+            ReportDialog rd = new ReportDialog(Project);
+            rd.ShowDialog();
+        }
+
+        private void initializePrinting()
+        {
+            if (PrintDoc == null)
+            {
+                PrintDoc = new RetroPrintDocument();
+                PrintDoc.Project = this.Project;
+
+                PrintDoc.DefaultPageSettings.Landscape = true;
+
+                dlgPageSetup = new PageSetupDialog();
+                dlgPageSetup.Document = _printDoc;
+
+                //Set default paper to Tabloid if available, Legal otherwise
+                foreach (PaperSize size in dlgPageSetup.PrinterSettings.PaperSizes)
+                {
+                    if (size.Kind == PaperKind.Tabloid)
+                    {
+                        _printDoc.DefaultPageSettings.PaperSize = size;
+                        break;
+                    }
+                }
+                if (_printDoc.DefaultPageSettings.PaperSize.Kind != PaperKind.Tabloid)
+                {
+                    foreach (PaperSize size in dlgPageSetup.PrinterSettings.PaperSizes)
+                    {
+                        if (size.Kind == PaperKind.Legal)
+                        {
+                            _printDoc.DefaultPageSettings.PaperSize = size;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void printAction(object sender, EventArgs e)
+        {
+            this.reqPaneHigh.Requirements.EndEdit();
+            this.reqPaneLow.Requirements.EndEdit();
+            try
+            {
+                initializePrinting();
+                PrintDialog dlgPrint = new PrintDialog();
+                dlgPrint.Document = PrintDoc;
+
+                if (dlgPrint.ShowDialog() == DialogResult.OK)
+                {
+                    dlgPrint.Document.Print();
+                }
+            }
+            catch (System.Drawing.Printing.InvalidPrinterException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void printPreviewAction(object sender, EventArgs e)
+        {
+            this.reqPaneHigh.Requirements.EndEdit();
+            this.reqPaneLow.Requirements.EndEdit();
+            try
+            {
+                initializePrinting();
+                PrintPreviewDialog dlgPrintPreview = new PrintPreviewDialog();
+                dlgPrintPreview.Document = PrintDoc;
+                dlgPrintPreview.MdiParent = this.MdiParent;
+                dlgPrintPreview.Show();
+            }
+            catch (System.Drawing.Printing.InvalidPrinterException ex) {
+                MessageBox.Show(ex.Message);   
+            }
+        }
+
+        private void pageSetupToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.reqPaneHigh.Requirements.EndEdit();
+            this.reqPaneLow.Requirements.EndEdit();
+            initializePrinting();
+            dlgPageSetup.ShowDialog(this.MdiParent);
+        }
+
+        private void undoAction(object sender, EventArgs e)
+        {
+
+        }
+
+        private void redoAction(object sender, EventArgs e)
+        {
+
+        }
+
+        private void closeAction(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("Are you sure?  Closing projects will cause any unsaved work to be lost", "Close Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+            {
+                this.Close();
+            }
+        }
+
+        private void selectAllAction(object sender, EventArgs e)
+        {
+            if (this.reqPaneHigh.Descriptions.Focused)
+            {
+                this.reqPaneHigh.Descriptions.SelectAll();
+            }
+            else if (this.reqPaneLow.Descriptions.Focused)
+            {
+                this.reqPaneLow.Descriptions.SelectAll();
+            }
+            else if (this.reqPaneHigh.Requirements.Focused)
+            {
+                this.reqPaneHigh.Requirements.SelectAll();
+            }
+            else if (this.reqPaneLow.Requirements.Focused)
+            {
+                this.reqPaneLow.Requirements.SelectAll();
+            }
+        }
+
+        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.reqPaneHigh.Requirements.EndEdit();
+            this.reqPaneLow.Requirements.EndEdit();
+            DataObject clipObject = new DataObject();
+
+            if (this.reqPaneHigh.Descriptions.Focused)
+            {
+                clipObject.SetData(DataFormats.Text, true, this.reqPaneHigh.Descriptions.SelectedText);
+                clipObject.SetData(DataFormats.Rtf, true, this.reqPaneHigh.Descriptions.SelectedRtf);
+                Clipboard.SetDataObject(clipObject);
+            }
+            else if (this.reqPaneLow.Descriptions.Focused)
+            {
+                clipObject.SetData(DataFormats.Text, true, this.reqPaneLow.Descriptions.SelectedText);
+                clipObject.SetData(DataFormats.Rtf, true, this.reqPaneLow.Descriptions.SelectedRtf);
+                Clipboard.SetDataObject(clipObject);
+            }
+            else if (this.reqPaneHigh.Requirements.Focused)
+            {
+                StringBuilder buffer = new StringBuilder();
+                foreach (DataGridViewColumn col in this.reqPaneHigh.Requirements.Columns)
+                {
+                    if (col.Visible && !col.Name.Equals("Keywords"))
+                    {
+                        buffer.Append(col.Name);
+                        buffer.Append((char)9);
+                    }
+                }
+                buffer.AppendLine();
+                foreach (DataGridViewRow row in this.reqPaneHigh.Requirements.SelectedRows)
+                {
+                    foreach (DataGridViewColumn col in this.reqPaneHigh.Requirements.Columns)
+                    {
+                        if (col.Visible && !col.Name.Equals("Keywords"))
+                        {
+                            object val = row.Cells[col.Index].Value;
+                            if (val != null)
+                            {
+                                buffer.Append(val.ToString());
+                            }
+                            buffer.Append((char)9);
+                        }
+                    }
+                    buffer.AppendLine();
+                }
+                Clipboard.SetData("UnicodeText", buffer.ToString());
+
+            }
+            else if (this.reqPaneLow.Requirements.Focused)
+            {
+                StringBuilder buffer = new StringBuilder();
+                foreach (DataGridViewColumn col in this.reqPaneLow.Requirements.Columns)
+                {
+                    if (col.Visible && !col.Name.Equals("Keywords"))
+                    {
+                        buffer.Append(col.Name);
+                        buffer.Append((char)9);
+                    }
+                }
+                buffer.AppendLine();
+                foreach (DataGridViewRow row in this.reqPaneLow.Requirements.SelectedRows)
+                {
+                    foreach (DataGridViewColumn col in this.reqPaneLow.Requirements.Columns)
+                    {
+                        if (col.Visible && !col.Name.Equals("Keywords"))
+                        {
+                            object val = row.Cells[col.Index].Value;
+                            if (val != null)
+                            {
+                                buffer.Append(val.ToString());
+                            }
+                            buffer.Append((char)9);
+                        }
+                    }
+                    buffer.AppendLine();
+                }
+                Clipboard.SetData("UnicodeText", buffer.ToString());
+            }
+        }
+
+        private void toolStripMenuAutolink_Click(object sender, EventArgs e)
+        {
+            this.reqPaneHigh.Requirements.EndEdit();
+            this.reqPaneLow.Requirements.EndEdit();
+            ToolStripMenuItem[] items = new ToolStripMenuItem[] { toolStripMenuAutolink100, toolStripMenuAutolink90, toolStripMenuAutolink80, toolStripMenuAutolink70, toolStripMenuAutolink60, toolStripMenuAutolink50, toolStripMenuAutolink40, toolStripMenuAutolink30, toolStripMenuAutolink20, toolStripMenuAutolink10 };
+            foreach(ToolStripMenuItem item in items) {
+                if(item != sender)
+                {
+                    item.Checked = false;
+                }
+                else if(item.Checked)
+                {
+                    AutoLinkPercent = float.Parse(item.Text.Replace("> ", String.Empty).Replace("%", String.Empty))/100F;
+                }
+                else
+                {
+                    AutoLinkPercent = 1F;
+                }
+            }
+            
+        }
+
+        private void includeNumbersMenuItem_Click(object sender, EventArgs e)
+        {
+            includeNumbersMenuItem.Checked = !includeNumbersMenuItem.Checked;
+
+            foreach (IDocument doc in this.Project.HighLevelRequirements)
+            {
+                double dummy;
+                foreach(IDocumentTerm term in doc.Keywords) {
+                    if (Double.TryParse(term.Term.Text, out dummy))
+                    {
+                        term.Enabled = includeNumbersMenuItem.Checked;
+                    }
+                }
+            }
+
+            foreach (IDocument doc in this.Project.LowLevelRequirements)
+            {
+                double dummy;
+                foreach (IDocumentTerm term in doc.Keywords)
+                {
+                    if (Double.TryParse(term.Term.Text, out dummy))
+                    {
+                        term.Enabled = includeNumbersMenuItem.Checked;
+                    }
+                }
+            }
+
+        }
+
+        private void includeFeedbackMenuItem_Click(object sender, EventArgs e)
+        {
+            includeFeedbackMenuItem.Checked = !includeFeedbackMenuItem.Checked;
+            Project.EnableFeedback = includeFeedbackMenuItem.Checked;
+        }
+
+        private void tsSwitchMatches_Click(object sender, EventArgs e)
+        {
+            this.reqPaneHigh.Requirements.EndEdit();
+            this.reqPaneLow.Requirements.EndEdit();
+            Cursor.Current = Cursors.WaitCursor;
+
+            TabPage hPage = reqPaneHigh.getSelectedTab();
+            TabPage lPage = reqPaneLow.getSelectedTab();
+
+            String selectedHighLevelID = String.Empty;
+            if (reqPaneHigh.Requirements.SelectedRows != null && reqPaneHigh.Requirements.SelectedRows[0].Cells[0].Value != null)
+            {
+                selectedHighLevelID = reqPaneHigh.Requirements.SelectedRows[0].Cells[0].Value.ToString();
+            }
+
+            String selectedLowLevelID = String.Empty;
+            if (reqPaneLow.Requirements.SelectedRows != null && reqPaneLow.Requirements.SelectedRows[0].Cells[0].Value != null)
+            {
+                selectedLowLevelID = reqPaneLow.Requirements.SelectedRows[0].Cells[0].Value.ToString();
+            }
+
+            if (reqPaneHigh.getSelectedTab().Name == "All")
+            {
+                reqPaneHigh.Requirements.CurrentCell = reqPaneHigh.Requirements.Rows[reqPaneHigh.Requirements.Rows.Count - 1].Cells[0];
+            }
+            this.reqPaneHigh.SelectAllTab();
+            this.reqPaneLow.SelectAllTab();
+            this.Refresh();
+
+            RetroDocument project = this.Project;
+            this.Project = null;
+
+            IDocument[] hDocs = new IDocument[project.HighLevelRequirements.Count];
+            project.HighLevelRequirements.CopyTo(hDocs, 0);
+            project.HighLevelRequirements.Clear();
+
+            IDocument[] lDocs = new IDocument[project.LowLevelRequirements.Count];
+            project.LowLevelRequirements.CopyTo(lDocs, 0);
+            project.LowLevelRequirements.Clear();
+
+            foreach (IDocument doc in lDocs)
+            {
+                doc.CandidateLinks.Clear();
+            }
+
+            foreach (IDocument doc in hDocs)
+            {
+                foreach(ICandidateLink link in doc.CandidateLinks) {
+                    if (link.LinkStatus != "Default")
+                    {
+                        IDocument highLevelDoc = link.HighLevelDoc;
+                        link.HighLevelDoc = link.LowLevelDoc;
+                        link.LowLevelDoc = highLevelDoc;
+
+                        if (!link.HighLevelDoc.CandidateLinks.Contains(link))
+                        {
+                            link.HighLevelDoc.CandidateLinks.Add(link);
+                        }
+
+                    }
+                }
+                doc.CandidateLinks.Clear();
+            }
+
+            project.HighLevelRequirements.AddRange(lDocs);
+            project.LowLevelRequirements.AddRange(hDocs);
+
+            this.Project = project;
+
+            reqPaneHigh.SelectTab(hPage);
+            reqPaneLow.SelectTab(lPage);
+
+            /*
+            if (reqPaneHigh.Requirements.Rows.Count > 0)
+            {
+                reqPaneHigh.Requirements.CurrentCell = reqPaneHigh.Requirements.Rows[0].Cells[0];
+            }
+            */
+
+            reqPaneHigh.SelectRequirement(selectedLowLevelID);
+            reqPaneLow.SelectRequirement(selectedHighLevelID);
+
+            String title = reqPaneHigh.Title;
+            reqPaneHigh.Title = reqPaneLow.Title;
+            reqPaneLow.Title = title;
+
+            Cursor.Current = Cursors.Default;
+
+        }
+
+        private void importRTMFromCSVMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            openFileDialog.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.* ";
+            openFileDialog.ShowDialog();
+
+            StringBuilder errWarnText = new StringBuilder();
+
+            int addCount = 0;
+            int updateCount = 0;
+            char[] trimChars = new char[] { ' ', '"' };
+
+            try
+            {
+                using (StreamReader importReader = File.OpenText(openFileDialog.FileName))
+                {
+                    char[] delims = new char[] { ',' };
+                    String highLevelID = String.Empty;
+                    String lowLevelID = String.Empty;
+                    String linkStatus = String.Empty;
+                    string[] cols;
+                    List<String> validLinkStatusList = new List<String>();
+                    foreach (object obj in Project.DataFactory.GetLinkStatusList())
+                    {
+                        if(obj != null) validLinkStatusList.Add(obj.ToString());
+                    }
+
+                    int lineNum = 0;
+                    while (true)
+                    {
+                        string inputLine = importReader.ReadLine();
+                        if (inputLine == null)
+                        {
+                            break;
+                        }
+                        lineNum++;
+                        cols = inputLine.Split(delims);
+
+                        if (cols.Length < 3)
+                        {
+                            errWarnText.Append("Line ");
+                            errWarnText.Append(lineNum.ToString());
+                            errWarnText.AppendLine(" contains less than 3 columns.  Import failed.");
+                            break;
+                        }
+
+                        highLevelID = cols[0].Trim(trimChars);
+                        lowLevelID = cols[1].Trim(trimChars);
+                        linkStatus = cols[2].Trim(trimChars);
+
+                        IDocument highDoc = Project.HighLevelRequirements.FindByID(highLevelID);
+                        IDocument lowDoc = Project.LowLevelRequirements.FindByID(lowLevelID);
+                        if (highDoc == null)
+                        {
+                            errWarnText.Append("Line ");
+                            errWarnText.Append(lineNum.ToString());
+                            errWarnText.Append(" 1st column contains an unknown high level id : ('");
+                            errWarnText.Append(highLevelID);
+                            errWarnText.AppendLine("')");
+                        }
+                        if (lowDoc == null)
+                        {
+                            errWarnText.Append("Line ");
+                            errWarnText.Append(lineNum.ToString());
+                            errWarnText.Append(" 2nd column contains an unknown low level id : ('");
+                            errWarnText.Append(lowLevelID);
+                            errWarnText.AppendLine("')");
+                        }
+
+                        if (!validLinkStatusList.Contains(linkStatus))
+                        {
+                            errWarnText.Append("Line ");
+                            errWarnText.Append(lineNum.ToString());
+                            errWarnText.Append(" 3rd column contains an unknown LinkStatus ('");
+                            errWarnText.Append(linkStatus);
+                            errWarnText.AppendLine("')");
+                        }
+                        else
+                        {
+                            if (highDoc != null && lowDoc != null)
+                            {
+                                ICandidateLink link = highDoc.CandidateLinks.FindByLowLevelID(lowLevelID);
+                                if (link == null)
+                                {
+                                    link = Project.DataFactory.CreateCandidateLink();
+                                    link.HighLevelDoc = highDoc;
+                                    link.LowLevelDoc = lowDoc;
+                                    highDoc.CandidateLinks.Add(link);
+                                    link.LinkStatus = linkStatus;
+
+                                    addCount++;
+                                }
+                                else if (link.LinkStatus != linkStatus)
+                                {
+                                    link.LinkStatus = linkStatus;
+                                    updateCount++;
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
+            errWarnText.Insert(0, addCount.ToString() + " candidate links added, " + updateCount.ToString() + " candidate links updated."+Environment.NewLine+Environment.NewLine);
+
+            this.Refresh();
+
+            ShowTextDialog std = new ShowTextDialog();
+
+            std.Text = "Import Warnings and Errors";
+            std.Show(errWarnText.ToString());
+        }
+
+        private void exportRTMToCSVToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+
+            saveFileDialog.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.* ";
+            saveFileDialog.OverwritePrompt = true;
+            saveFileDialog.ShowDialog();
+
+            try
+            {
+                using (TextWriter exportWriter = File.CreateText(saveFileDialog.FileName))
+                {
+
+                    exportWriter.Write("High Level Requirement ID,");
+                    //exportWriter.Write("High Level Requirement Text,");
+                    exportWriter.Write("Low Level Requirement ID,");
+                    //exportWriter.Write("Low Level Requirement Text,");
+                    exportWriter.Write("Link Status,");
+                    exportWriter.Write("Weight");
+                    exportWriter.WriteLine();
+
+                    //Write out the High-level requirement and its linked low-level requirements
+                    foreach (IDocument dr in Project.HighLevelRequirements)
+                    {
+                        foreach (ICandidateLink link in dr.CandidateLinks)
+                        {
+                            if (link.LinkStatus == "Not A Link") continue;
+                            exportWriter.Write("\"");
+                            exportWriter.Write(dr.ID);
+                            exportWriter.Write("\"");
+                            exportWriter.Write(",");
+
+                            //exportWriter.Write("\"");
+                            //exportWriter.Write(dr.Description);
+                            //exportWriter.Write("\"");
+                            //exportWriter.Write(",");
+
+                            exportWriter.Write("\"");
+                            exportWriter.Write(link.ID);
+                            exportWriter.Write("\"");
+                            exportWriter.Write(",");
+
+                            //exportWriter.Write("\"");
+                            //exportWriter.Write(link.Description);
+                            //exportWriter.Write("\"");
+                            //exportWriter.Write(",");
+
+                            exportWriter.Write("\"");
+                            exportWriter.Write(link.LinkStatus);
+                            exportWriter.Write("\"");
+                            exportWriter.Write(",");
+
+                            exportWriter.Write("\"");
+                            exportWriter.Write(link.Weight);
+                            exportWriter.Write("\"");
+
+                            exportWriter.WriteLine();
+                        }
+                    }//end for stmt
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+    }
+
+    class dgSorter : IComparer, IComparer<DataGridViewRow>
+    {
+        public int Compare(Object x, Object y)
+        {
+            return Compare(x as DataGridViewRow, y as DataGridViewRow);
+        }
+
+        #region IComparer<DataGridViewRow> Members
+
+        public int Compare(DataGridViewRow a, DataGridViewRow b)
+        {
+            if (a.Index < b.Index)
+            {
+                return -1;
+            }
+            else if (a.Index > b.Index)
+            {
+                return 1;
+            }
+            return 0;
+        }
+
+        #endregion
+    }
+}

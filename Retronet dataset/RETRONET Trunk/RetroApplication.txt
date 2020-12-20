@@ -1,0 +1,347 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+using System.IO;
+using org.traceabilitycenter.RetroToolkit;
+using org.traceabilitycenter.RetroToolkit.Basic;
+
+namespace org.traceabilitycenter.Retro.UI
+{
+    /// <summary>The MDI container for all Retro functionality</summary>
+    public partial class RetroApplication : Form
+    {
+        private static Logger _actionLogger = null;
+        public static Logger ActionLogger
+        {
+            get
+            {
+                if (_actionLogger == null) _actionLogger = new Logger();
+                _actionLogger.EnableLogging = Properties.Settings.Default.EnableLogging;
+                return _actionLogger;
+            }
+            set
+            {
+                _actionLogger = value;
+            }
+        }
+
+        HelpProvider help = new HelpProvider();
+        public RetroApplication()
+        {
+            // wkkong 8/22/10 - Add flag to turn on FakeMode. Relevance feedback is disabled and RTM is faked.
+            // wkkong 9/10/10 - Removed Fakemode as FakeRetro will not be part of the trunk.
+            //RetroDocument.FakeMode = true; // Turn into FakeRetro
+
+            InitializeComponent();
+
+            this.MdiChildActivate += new EventHandler(RetroApplication_MdiChildActivate);
+            
+            //If the recently opened property doesn't exist, create it
+            if (Properties.Settings.Default.RecentlyOpened == null)
+            {
+                Properties.Settings.Default.RecentlyOpened = new System.Collections.Specialized.StringCollection();
+            }
+            
+            //Initialize the recently used file menu
+            GenerateRecentlyUsedMenu();
+
+            //If the help file exists, enable it
+            String helpPath = Path.GetFullPath("Retro.chm");
+            if(File.Exists(helpPath)) {
+                help.HelpNamespace = Path.GetFullPath("Retro.chm");
+            }
+            //If not, hide help related functions
+            else {
+                helpToolStripButton.Visible = false;
+                toolStripSeparatorHelp.Visible = false;
+                contentsToolStripMenuItem.Visible = false;
+                indexToolStripMenuItem.Visible = false;
+                searchToolStripMenuItem.Visible = false;
+                toolStripSeparatorHelp2.Visible = false;
+            }
+        }
+
+        protected RetroDocument createDefaultDocument() {
+            RetroDocument retroDocument = new RetroDocument();
+            retroDocument.DataFactory = new RetroToolkit.Basic.Data.DataFactory();
+            retroDocument.Analyzer = new RetroToolkit.Basic.DocumentAnalyzerBasic();
+            retroDocument.WeightMethod = new RetroToolkit.VectorSpace.WeightCalculator_TF_IDF();
+            retroDocument.RankingMethod = new RetroToolkit.VectorSpace.RankCalculatorBasic();
+            retroDocument.Stemmer = new Porter.PorterStemmer();
+            retroDocument.FeedbackMethod = new RetroToolkit.Basic.FeedbackCalculatorStandardRochio(1, 1.75, 1);
+            retroDocument.DocNormalizer = new RetroToolkit.Basic.DocumentNormalizerSquareNorm();
+            retroDocument.VocabularyFilters.Add(new RetroToolkit.Basic.VocabularyFilters.VocabularyFilterRemoveStopWords());
+            retroDocument.Serializer = new RetroToolkit.Basic.SerializerClassicRetroFileFormat(null, null, Path.GetFullPath("stopword_fox.dat"));
+            //retroDocument.ResultFilters.Add(new RetroToolkit.Basic.ResultFilters.ResultFilterTopNRankHigh(10));
+            //Properties.Settings.Default.LogActions
+            return retroDocument;
+        }
+
+        /// <summary>Generates the recently used file menu</summary>
+        protected void GenerateRecentlyUsedMenu()
+        {
+            openRecentToolstripMenuItem.DropDownItems.Clear();
+            foreach (String s in Properties.Settings.Default.RecentlyOpened)
+            {
+                if (File.Exists(s))
+                {
+                    this.openRecentToolstripMenuItem.DropDownItems.Add(s, null, openRecentAction);
+                }
+            }
+            openRecentToolstripMenuItem.Visible = (openRecentToolstripMenuItem.DropDownItems.Count > 0);
+        }
+
+        /// <summary>Sets the application status message</summary>
+        /// <param name="message"></param>
+        public void SetStatus(String message)
+        {
+            this.toolStripStatusLabel.Text = message;
+        }
+
+        /// <summary>Sets the application progress value</summary>
+        /// <param name="value"></param>
+        public void SetProgress(int value)
+        {
+            this.toolStripProgressBar1.Visible = (value != 0 && value != 100);
+            this.toolStripProgressBar1.Value = value;
+        }
+
+        /// <summary>Adds a new form to this MDI container</summary>
+        /// <param name="childForm"></param>
+        protected void AddForm(Form childForm)
+        {
+            // Make it a child of this MDI form before showing it.
+            childForm.MdiParent = this;
+            childForm.Size = Properties.Settings.Default.ProjectSize;
+            childForm.WindowState = Properties.Settings.Default.ProjectWindowState;
+            childForm.Show();
+        }
+
+        /// <summary>
+        /// Merges menus and toolstrips from the child from into the
+        /// application toolbar and menubar
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void RetroApplication_MdiChildActivate(object sender, EventArgs e)
+        {
+            ToolStripManager.RevertMerge(toolStrip);
+            if (this.ActiveMdiChild != null && this.ActiveMdiChild is RetroProjectForm && (ActiveMdiChild as RetroProjectForm).ToolStrip != null)
+            {
+                ToolStripManager.Merge((ActiveMdiChild as RetroProjectForm).ToolStrip, toolStrip);
+                this.ActiveMdiChild.SizeChanged += new EventHandler(ActiveMdiChild_SizeChanged);
+            }
+        }
+
+        /// <summary>Captures the default window size and state</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void ActiveMdiChild_SizeChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.ProjectSize = this.ActiveMdiChild.Size;
+            Properties.Settings.Default.ProjectWindowState = this.ActiveMdiChild.WindowState;
+        }
+
+        /// <summary>Handles creating a new project</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ShowNewForm(object sender, EventArgs e)
+        {
+            ProjectSettingsDialog newProjectDialog = new ProjectSettingsDialog();
+            newProjectDialog.Project = createDefaultDocument();
+            if (newProjectDialog.ShowDialog() == DialogResult.OK)
+            {
+                // Create a new instance of the child form.
+                newProjectDialog.Project.Serializer.loadDocument(newProjectDialog.Project);
+                AddForm(new RetroProjectForm(newProjectDialog.Project));
+                newProjectDialog.Project.Initialize();
+                SetStatus("New Project Created");
+            }
+        }
+
+        /// <summary>Handles opening a recent project</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void openRecentAction(object sender, EventArgs e)
+        {
+            ToolStripMenuItem item = sender as ToolStripMenuItem;
+            if (item == null) return;
+
+            OpenProject(item.Text);
+        }
+
+        /// <summary>Handles opening a user specified project</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OpenFile(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+            //openFileDialog.Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*";
+            openFileDialog.Filter = "Retro Projects|path.txt";
+            if (openFileDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                OpenProject(openFileDialog.FileName);
+            }
+        }
+
+        /// <summary>actually opens the specified project</summary>
+        /// <param name="projectFileName"></param>
+        protected void OpenProject(String projectFileName)
+        {
+            RetroDocument project = createDefaultDocument();
+            (project.Serializer as RetroToolkit.Basic.SerializerClassicRetroFileFormat).LoadFromFile(projectFileName, project);
+            AddForm(new RetroProjectForm(project));
+            SetStatus("Project Opened");
+            AddRecentlyUsed(projectFileName);
+        }
+
+        /// <summary>
+        /// Adds an item to recently used collection for use on
+        /// the recently opened file menu
+        /// </summary>
+        /// <param name="projectFileName"></param>
+        public void AddRecentlyUsed(String projectFileName)
+        {
+            while (Properties.Settings.Default.RecentlyOpened.Contains(projectFileName))
+            {
+                Properties.Settings.Default.RecentlyOpened.Remove(projectFileName);
+            }
+            Properties.Settings.Default.RecentlyOpened.Insert(0, projectFileName);
+            while (Properties.Settings.Default.RecentlyOpened.Count > 5)
+            {
+                Properties.Settings.Default.RecentlyOpened.RemoveAt(5);
+            }
+            GenerateRecentlyUsedMenu();
+        }
+
+        /// <summary>Exit the application</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ExitToolsStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("Are you sure?  Exiting the application will cause any unsaved work to be lost", "Exit Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+            {
+                Application.Exit();
+            }
+        }
+
+        /// <summary>Hides or shows the tool bar</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ToolBarToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            toolStrip.Visible = toolBarToolStripMenuItem.Checked;
+        }
+
+        /// <summary>Hides or shows the status bar</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void StatusBarToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            statusStrip.Visible = statusBarToolStripMenuItem.Checked;
+        }
+
+        /// <summary>Cascades the document windows in the MDI container</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CascadeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LayoutMdi(MdiLayout.Cascade);
+        }
+
+        /// <summary>Tiles the document windows in the MDI container</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void TileVerticleToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LayoutMdi(MdiLayout.TileVertical);
+        }
+
+        /// <summary>Tiles the document windows horizontally in the MDI container</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void TileHorizontalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LayoutMdi(MdiLayout.TileHorizontal);
+        }
+
+        /// <summary>Auto arranges the documents in the MDI window</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ArrangeIconsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LayoutMdi(MdiLayout.ArrangeIcons);
+        }
+
+        /// <summary>Closes all open documents in the MDI window</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CloseAllToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("Are you sure?  Closing projects will cause any unsaved work to be lost", "Close Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+            {
+                foreach (Form childForm in MdiChildren)
+                {
+                    childForm.Close();
+                }
+            }
+        }
+
+        /// <summary>Displays the about dialog</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            new AboutBox().ShowDialog();
+        }
+
+        /// <summary>Displays the help</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void helpToolStripButton_Click(object sender, EventArgs e)
+        {
+            Help.ShowHelp(this, help.HelpNamespace);
+        }
+
+        /// <summary>Displays the help index</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void indexToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Help.ShowHelpIndex(this, help.HelpNamespace);
+        }
+
+        /// <summary>Displays the help search</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void searchToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Help.ShowHelp(this, help.HelpNamespace, HelpNavigator.Find, "");
+        }
+    }
+}

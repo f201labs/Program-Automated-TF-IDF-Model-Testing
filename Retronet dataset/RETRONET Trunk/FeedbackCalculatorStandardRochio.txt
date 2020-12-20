@@ -1,0 +1,157 @@
+/*
+   Copyright © 2006-10, Jody Larsen.  jody.larsen@uky.edu, jody.larsen@gmail.com, jody@dreamfrog.com
+   All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation; either version 2.1 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this library; if not, write to the
+   Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor Boston, MA  02110-1301 USA
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Data;
+using org.traceabilitycenter.RetroToolkit;
+using org.traceabilitycenter.RetroToolkit.Data;
+using org.traceabilitycenter.RetroToolkit.Basic.Data;
+
+namespace org.traceabilitycenter.RetroToolkit.Basic
+{
+    public class FeedbackCalculatorStandardRochio : ICandidateLinkFeedbackCalculator
+    {
+        public override string ToString()
+        {
+            return getPluginName();
+        }
+
+        #region IFeedbackCalculator Members
+
+        private double _alpha = 1.0, _beta = 1.75, _gamma = 1.0;
+
+        public FeedbackCalculatorStandardRochio() { }
+
+        public FeedbackCalculatorStandardRochio(double alpha, double beta, double gamma)
+        {
+            _alpha = alpha;
+            _beta = beta;
+            _gamma = gamma;
+        }
+
+        public void clearCandidateLinkFeedback(IDocumentCollection highDocs, IDocumentCollection lowDocs)
+        {
+            foreach (Document lowReq in lowDocs)
+            {
+                for (int i = lowReq.Keywords.Count - 1; i >= 0; i--)
+                {
+                    if (lowReq.Keywords[i].TermSource == "Feedback")
+                    {
+                        lowReq.Keywords.RemoveAt(i);
+                    }
+                }
+            }
+            foreach (Document highReq in highDocs)
+            {
+                for (int i = highReq.Keywords.Count - 1; i >= 0; i--)
+                {
+                    if (highReq.Keywords[i].TermSource == "Feedback")
+                    {
+                        highReq.Keywords.RemoveAt(i);
+                    }
+                }
+
+                //Set the positive and negative modifiers to zero
+                foreach (DocumentTerm dTerm in highReq.Keywords)
+                {
+                    dTerm.NegativeWeightModifiers = 0.0;
+                    dTerm.NegativeWeightNormalizer = 0.0;
+                    dTerm.PositiveWeightModifiers = 0.0;
+                    dTerm.PositiveWeightNormalizer = 0.0;
+
+                    dTerm.Weight = dTerm.OriginalWeight;
+                }
+            }
+        }
+
+        public void calculateCandidateLinkFeedback(IDocumentCollection highDocs, IDocumentCollection lowDocs)
+        {
+            //reset the document vectors from the last round of feedback
+            clearCandidateLinkFeedback(highDocs, lowDocs);
+
+            //loop through each high level document
+            foreach (Document highReq in highDocs)
+            {
+                //loop through all the document terms and calculate the modifiers,
+                //adding terms that are found in links but not yet in high level requirement
+                foreach (CandidateLink linkRow in highReq.CandidateLinks)
+                {
+                    if (linkRow.LinkStatus == "Default") { continue; }
+
+                    IDocumentTermCollection keywordsHigh = linkRow.HighLevelDoc.Keywords;
+
+                    DocumentTerm dt = null;
+                    foreach (DocumentTerm dTerm in linkRow.LowLevelDoc.Keywords)
+                    {
+                        //jody cast bug
+                        dt = keywordsHigh.FindByTerm(dTerm.Term) as DocumentTerm;
+
+                        if (linkRow.LinkStatus == "Not A Link")
+                        {
+                            if (dt != null)
+                            {
+                                dt.NegativeWeightModifiers += dTerm.Weight;
+                                dt.NegativeWeightNormalizer++;
+                            }
+                        }
+                        else
+                        {
+                            if (dt == null)
+                            {
+                                dt = new DocumentTerm();
+                                dt.Term = dTerm.Term;
+                                dt.TermSource = "Feedback";
+                                keywordsHigh.Add(dt);
+                            }
+                            dt.PositiveWeightModifiers += dTerm.Weight;
+                            dt.PositiveWeightNormalizer++;
+                        }
+                    }
+                }
+
+                //Calculate the new weights with feedback applied
+                foreach (DocumentTerm hTerm in highReq.Keywords)
+                {
+                    hTerm.Weight = _alpha * hTerm.OriginalWeight + 
+                        ((hTerm.PositiveWeightNormalizer == 0) ? 0.0 : _beta * (hTerm.PositiveWeightModifiers / hTerm.PositiveWeightNormalizer)) -
+                        ((hTerm.NegativeWeightNormalizer == 0) ? 0.0 : _gamma * (hTerm.NegativeWeightModifiers / hTerm.NegativeWeightNormalizer));
+                }
+            }
+        }
+
+        #endregion
+
+        #region IPlugin Members
+
+        public int getPluginID()
+        {
+            return 1;
+        }
+
+        public string getPluginName()
+        {
+            return "Standard Rochio ("+_alpha+", "+_beta+", "+_gamma+")";
+        }
+
+        #endregion
+    }
+}
